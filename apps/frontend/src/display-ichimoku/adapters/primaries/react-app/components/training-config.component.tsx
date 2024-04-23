@@ -3,25 +3,28 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../../../../store/reduxStore";
 import { symbolsVM } from "../view-models-generators/symbols/symbols-vm";
 import { retrieveSymbols } from "../../../../hexagon/use-cases/retrieve-symbols/retrieve-symbols";
+import { retrieveIndicators } from "../../../../hexagon/use-cases/retrieve-indicators/retrieve-indicators.ts";
+import { TradingSymbol } from "../../../../hexagon/models/trading-symbol.model.ts";
+import { TradingTimeUnit } from "../../../../hexagon/models/trading-time-unit.model.ts";
 
 export const TrainingConfigComponent = () => {
   const dispatch = useDispatch<AppDispatch>();
   const symbols = useSelector(symbolsVM);
 
   useEffect(() => {
-    dispatch(retrieveSymbols()).catch((e) => {
-      console.error(e);
-    });
-  }, []);
+    dispatch(retrieveSymbols())
+  }, [dispatch]);
 
-  const [symbol, setSymbol] = useState("");
-  const [timeUnit, setTimeUnit] = useState("ST");
+  const [symbol, setSymbol] = useState<TradingSymbol | "">("");
+  const [timeUnit, setTimeUnit] = useState<TradingTimeUnit>("ST");
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    console.log(symbol);
-    console.log(timeUnit);
-    console.log(startDate);
+    dispatch(retrieveIndicators({
+      symbol,
+      timeUnit,
+      startDate: startDate!
+    }))
   };
 
   return (
@@ -49,7 +52,7 @@ export const TrainingConfigComponent = () => {
             name={"timeUnit"}
             value={"ST"}
             checked={timeUnit === "ST"}
-            onChange={(e) => setTimeUnit(e.target.value)}
+            onChange={(e) => setTimeUnit(e.target.value as TradingTimeUnit)}
           />
           Short term
         </label>
@@ -59,7 +62,7 @@ export const TrainingConfigComponent = () => {
             name={"timeUnit"}
             value={"MT"}
             checked={timeUnit === "MT"}
-            onChange={(e) => setTimeUnit(e.target.value)}
+            onChange={(e) => setTimeUnit(e.target.value as TradingTimeUnit)}
           />
           Mid term
         </label>

@@ -5,6 +5,7 @@ import { symbolGatewayFactory } from "./display-ichimoku/config/dependencies/sym
 import { Provider } from "react-redux";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+import { indicatorGatewayFactory } from "./display-ichimoku/config/dependencies/indicator-gateway.config.ts";
 
 const root = createRoot(
   document.getElementById("root") as HTMLElement,
@@ -12,6 +13,7 @@ const root = createRoot(
 
 const store = initReduxStore({
   symbolGateway: symbolGatewayFactory(),
+  indicatorGateway: indicatorGatewayFactory()
 });
 
 root.render(

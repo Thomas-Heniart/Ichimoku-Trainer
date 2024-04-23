@@ -2,17 +2,22 @@ import { ColorType, createChart } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 import { dailyData } from "./data/data";
 import { IchimokuCloudSeries } from "./ichimoku-cloud-plugin/series";
-import { TrainingConfigComponent } from "./display-ichimoku/adapters/primaries/react-app/components/training-config.component";
+import {
+  TrainingConfigComponent
+} from "./display-ichimoku/adapters/primaries/react-app/components/training-config.component";
+import {
+  IchimokuChartComponent
+} from "./display-ichimoku/adapters/primaries/react-app/components/ichimoku-chart.component.tsx";
 
 export const ChartComponent = (props: {
   colors?:
     | {
-        backgroundColor?: "white" | undefined;
-        lineColor?: "#2962FF" | undefined;
-        textColor?: "black" | undefined;
-        areaTopColor?: "#2962FF" | undefined;
-        areaBottomColor?: "rgba(41, 98, 255, 0.28)" | undefined;
-      }
+    backgroundColor?: "white" | undefined;
+    lineColor?: "#2962FF" | undefined;
+    textColor?: "black" | undefined;
+    areaTopColor?: "#2962FF" | undefined;
+    areaBottomColor?: "rgba(41, 98, 255, 0.28)" | undefined;
+  }
     | undefined;
 }) => {
   const {
@@ -21,8 +26,8 @@ export const ChartComponent = (props: {
       lineColor = "#2962FF",
       textColor = "black",
       areaTopColor = "#2962FF",
-      areaBottomColor = "rgba(41, 98, 255, 0.28)",
-    } = {},
+      areaBottomColor = "rgba(41, 98, 255, 0.28)"
+    } = {}
   } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -35,10 +40,10 @@ export const ChartComponent = (props: {
     const chart = createChart(chartContainerRef.current!, {
       layout: {
         background: { type: ColorType.Solid, color: backgroundColor },
-        textColor,
+        textColor
       },
       width: chartContainerRef.current?.clientWidth,
-      height: 750,
+      height: 750
     });
     chart.timeScale().fitContent();
 
@@ -47,19 +52,19 @@ export const ChartComponent = (props: {
 
     const tenkanSeries = chart.addLineSeries({
       lineWidth: 1,
-      color: "#e5eb34",
+      color: "#e5eb34"
     });
     tenkanSeries.setData(
       dailyData
         .filter((d) => !!d.tenkan)
-        .map(({ time, tenkan }) => ({ time, value: tenkan })),
+        .map(({ time, tenkan }) => ({ time, value: tenkan }))
     );
 
     const kijunSeries = chart.addLineSeries({ lineWidth: 1, color: "#3d34eb" });
     kijunSeries.setData(
       dailyData
         .filter((d) => !!d.kijun)
-        .map(({ time, kijun }) => ({ time, value: kijun })),
+        .map(({ time, kijun }) => ({ time, value: kijun }))
     );
 
     const cloudSeriesView = new IchimokuCloudSeries();
@@ -67,17 +72,17 @@ export const ChartComponent = (props: {
     cloudSeries.setData(
       dailyData
         .filter((d) => !!d.ssa && !!d.ssb)
-        .map(({ time, ssa, ssb }) => ({ time, ssa, ssb })),
+        .map(({ time, ssa, ssb }) => ({ time, ssa, ssb }))
     );
 
     const chikouSeries = chart.addLineSeries({
       lineWidth: 1,
-      color: "#000000",
+      color: "#000000"
     });
     chikouSeries.setData(
       dailyData
         .filter((d) => !!d.chikou)
-        .map(({ time, chikou }) => ({ time, value: chikou })),
+        .map(({ time, chikou }) => ({ time, value: chikou }))
     );
 
     window.addEventListener("resize", handleResize);
@@ -101,6 +106,7 @@ export default function App() {
       </header>
       <main>
         <TrainingConfigComponent />
+        <IchimokuChartComponent />
       </main>
     </>
   );
