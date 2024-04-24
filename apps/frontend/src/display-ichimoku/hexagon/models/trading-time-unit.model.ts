@@ -1,1 +1,1 @@
-export type TradingTimeUnit = "ST" | "MT";
+export type TradingTimeUnit = 'ST' | 'MT'

@@ -4,13 +4,30 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
-    "turbo": "^1.13.2"
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^28.2.0",
+    "eslint-plugin-jest-extended": "^2.4.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "eslint-plugin-unused-imports": "^3.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "turbo": "^1.13.2",
+    "typescript-eslint": "^7.7.1"
   },
   "scripts": {
     "dev": "VITE_REACT_ENV=demo turbo run dev",
     "build": "turbo run build",
     "start": "node apps/backend/dist/main",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "lint": "eslint ./apps --ext .ts,.tsx --cache --fix",
+    "lint:check": "eslint ./apps --ext .ts,.tsx",
+    "prepare": "node .husky/install.mjs"
   },
   "workspaces": [
     "apps/*"

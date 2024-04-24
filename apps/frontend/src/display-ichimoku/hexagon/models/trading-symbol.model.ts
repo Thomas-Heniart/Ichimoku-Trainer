@@ -1,2 +1,2 @@
-export type TradingSymbols = Array<TradingSymbol>;
-export type TradingSymbol = string;
+export type TradingSymbols = Array<TradingSymbol>
+export type TradingSymbol = string

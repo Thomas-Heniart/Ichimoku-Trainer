@@ -1,0 +1,51 @@
+{
+  "root": true,
+  "ignorePatterns": ["apps/backend/dist/*", "apps/frontend/out/*", "apps/frontend/.next/*", "**/.turbo/*", "**/node_modules/*"],
+  "plugins": ["@typescript-eslint", "prettier", "jest", "jest-extended", "import"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "plugin:prettier/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "apps/frontend/"
+    },
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {
+        "directory": "apps/*/tsconfig.json"
+      }
+    }
+  },
+  "rules": {
+    "no-console": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "all",
+        "singleQuote": true,
+        "printWidth": 120,
+        "tabWidth": 4,
+        "semi": false
+      }
+    ],
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-loss-of-precision": "off",
+    "jest/valid-expect": [
+      "error",
+      {
+        "maxArgs": 2
+      }
+    ]
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest/globals": true
+  }
+}

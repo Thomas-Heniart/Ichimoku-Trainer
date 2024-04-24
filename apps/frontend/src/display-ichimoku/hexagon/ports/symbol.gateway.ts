@@ -1,5 +1,5 @@
-import { TradingSymbols } from "../models/trading-symbol.model";
+import { TradingSymbols } from '../models/trading-symbol.model'
 
 export interface SymbolGateway {
-  retrieveAll(): Promise<TradingSymbols>;
+    retrieveAll(): Promise<TradingSymbols>
 }

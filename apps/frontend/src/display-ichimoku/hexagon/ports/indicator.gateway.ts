@@ -1,6 +1,6 @@
-import { IndicatorsQuery } from "../use-cases/retrieve-indicators/retrieve-indicators";
-import { Indicators } from "../models/indicators.model";
+import { IndicatorsQuery } from '../use-cases/retrieve-indicators/retrieve-indicators'
+import { Indicators } from '../models/indicators.model'
 
 export interface IndicatorGateway {
-  retrieveIndicators(query: IndicatorsQuery): Promise<Indicators>;
+    retrieveIndicators(query: IndicatorsQuery): Promise<Indicators>
 }
