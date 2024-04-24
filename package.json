@@ -29,6 +29,9 @@
     "lint:check": "eslint ./apps --ext .ts,.tsx",
     "prepare": "node .husky/install.mjs"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js}": "npm run lint"
+  },
   "workspaces": [
     "apps/*"
   ]

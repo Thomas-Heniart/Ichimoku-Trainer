@@ -54,7 +54,8 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 -[x] VM: Draw all indicators for the horizon work unit
 -[x] VM: Draw only kijun, cloud and lagging for the horizon one
 -[x] Generate some fake data for InMemory and draw using ChartComponent
--[ ] Draw the previous indicators
+-[x] Draw the previous cloud
+-[ ] Draw the previous kijun
 -[ ] Rebrand ViewModel to match LineData<Time> typing and IchimokuCloudData
 -[ ] Focus on last candle
 -[ ] HttpAdapters

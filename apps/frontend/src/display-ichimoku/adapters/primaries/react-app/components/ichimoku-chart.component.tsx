@@ -83,6 +83,19 @@ export const IchimokuChartComponent = (props: {
             ),
         )
 
+        if (data.previousKijun.length) {
+            const previousKijunSeries = chart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
+            previousKijunSeries.setData(
+                data.previousKijun.reduce(
+                    (acc, value, i) => {
+                        if (!value) return acc
+                        return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                    },
+                    [] as Array<{ time: UTCTimestamp; value: number }>,
+                ),
+            )
+        }
+
         const cloudSeriesView = new IchimokuCloudSeries()
         const cloudSeries = chart.addCustomSeries(cloudSeriesView)
         cloudSeries.setData(
@@ -96,7 +109,7 @@ export const IchimokuChartComponent = (props: {
         )
 
         if (data.previousSsb.length) {
-            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(83,144,251, 0.5)' })
+            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' })
             const previousCloudSeries = chart.addCustomSeries(previousCloudSeriesView)
             previousCloudSeries.setData(
                 data.previousSsb.reduce(
