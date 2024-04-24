@@ -3,6 +3,7 @@ import { ichimokuDrawVM } from "../view-models-generators/ichimoku-draw/__test__
 import { useEffect, useRef, useState } from "react";
 import { CandlestickData, ColorType, createChart, UTCTimestamp } from "lightweight-charts";
 import { WorkingUnit } from "../../../../hexagon/models/indicators.model.ts";
+import { IchimokuCloudSeries } from "../../../../../ichimoku-cloud-plugin/series.ts";
 
 export const IchimokuChartComponent = (props: {
   colors?:
@@ -57,6 +58,46 @@ export const IchimokuChartComponent = (props: {
       close,
     }))
     candlestickSeries.setData(candleStickData)
+
+    const tenkanSeries = chart.addLineSeries({
+      lineWidth: 1,
+      color: "#e5eb34"
+    });
+    tenkanSeries.setData(
+      data.tenkan.reduce((acc, value, i) => {
+        if (!value) return acc
+        return [...acc, {time: data.timestamps[i] / 1000 as UTCTimestamp, value}]
+      }, [] as Array<{time: UTCTimestamp, value: number}>)
+    );
+
+    const kijunSeries = chart.addLineSeries({ lineWidth: 1, color: "#3d34eb" });
+    kijunSeries.setData(
+      data.kijun.reduce((acc, value, i) => {
+        if (!value) return acc
+        return [...acc, {time: data.timestamps[i] / 1000 as UTCTimestamp, value}]
+      }, [] as Array<{time: UTCTimestamp, value: number}>)
+    );
+
+    const cloudSeriesView = new IchimokuCloudSeries();
+    const cloudSeries = chart.addCustomSeries(cloudSeriesView);
+    cloudSeries.setData(
+      data.ssb.reduce((acc, ssb, i) => {
+        if (!ssb) return acc
+        return [...acc,  {time: data.timestamps[i] / 1000 as UTCTimestamp, ssa: data.ssa[i], ssb}]
+      }, [] as Array<{time: UTCTimestamp, ssa: number, ssb: number}>)
+    );
+
+    const laggingSpanSeries = chart.addLineSeries({
+      lineWidth: 1,
+      color: "#000000"
+    });
+    laggingSpanSeries.setData(
+      data.lagging.reduce((acc, value, i) => {
+        console.log(value);
+        if (!value) return acc
+        return [...acc, {time: data.timestamps[i] / 1000 as UTCTimestamp, value}]
+      }, [] as Array<{time: UTCTimestamp, value: number}>)
+    );
 
     window.addEventListener("resize", handleResize);
 

@@ -53,22 +53,15 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 -[x] Retrieve ichimoku indicators from select a symbol, a startDate and a timeUnit (ShortTerm or MiddleTerm to start)
 -[x] VM: Draw all indicators for the horizon work unit
 -[x] VM: Draw only kijun, cloud and lagging for the horizon one
--[ ] Generate some fake data for InMemory and draw using ChartComponent
--[ ] Add the option to hide a drawing
+-[x] Generate some fake data for InMemory and draw using ChartComponent
+-[ ] Draw the previous indicators
+-[ ] Rebrand ViewModel to match LineData<Time> typing and IchimokuCloudData
 -[ ] Focus on last candle
 -[ ] HttpAdapters
 
-## Next step
-
-- Select a symbol
-- Select a date
-- Se
-- Draw all indicators for the smallest interval
-- Draw only kijun, cloud and lagging for the other ones
-
 ## Backlog
 
-- Draw cloud in the future
+- Add the option to hide a drawing
 - Choose between entering a position (buy or sell) or skip
 - Retrieve next ticker
 - Do you want to close the position
