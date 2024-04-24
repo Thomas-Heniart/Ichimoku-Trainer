@@ -32,7 +32,6 @@ export const IchimokuChartComponent = (props: {
     const chartContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        console.log('using effect')
         if (!data) return
 
         const handleResize = () => {
@@ -96,6 +95,23 @@ export const IchimokuChartComponent = (props: {
             ),
         )
 
+        if (data.previousSsb.length) {
+            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(83,144,251, 0.5)' })
+            const previousCloudSeries = chart.addCustomSeries(previousCloudSeriesView)
+            previousCloudSeries.setData(
+                data.previousSsb.reduce(
+                    (acc, ssb, i) => {
+                        if (!ssb) return acc
+                        return [
+                            ...acc,
+                            { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.previousSsa[i], ssb },
+                        ]
+                    },
+                    [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+                ),
+            )
+        }
+
         const laggingSpanSeries = chart.addLineSeries({
             lineWidth: 1,
             color: '#000000',
@@ -103,7 +119,6 @@ export const IchimokuChartComponent = (props: {
         laggingSpanSeries.setData(
             data.lagging.reduce(
                 (acc, value, i) => {
-                    console.log(value)
                     if (!value) return acc
                     return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
                 },

@@ -5,7 +5,6 @@ import { demoIndicators } from '../../../config/dependencies/demo-indicators.ts'
 
 export class DemoIndicatorGateway implements IndicatorGateway {
     async retrieveIndicators(query: IndicatorsQuery): Promise<Indicators> {
-        console.log(query)
         if (query.symbol !== 'AAPL') return defaultData()
         return demoIndicators
     }

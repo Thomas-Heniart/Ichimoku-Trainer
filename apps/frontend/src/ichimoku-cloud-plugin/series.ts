@@ -12,21 +12,25 @@ import {
 
 import { IchimokuCloudSeriesRenderer } from './renderer'
 
-export interface IchimokuCloudSeriesOptions extends CustomSeriesOptions {
+export interface IchimokuCloudSeriesOptions extends CustomSeriesOptions, IchimokuCloudSeriesCustomOptions {}
+
+export interface IchimokuCloudSeriesCustomOptions {
     cloudColor: string
 }
 
 export class IchimokuCloudSeries<TData extends IchimokuCloudData> implements ICustomSeriesPaneView<Time, TData> {
     private readonly _renderer: IchimokuCloudSeriesRenderer<IchimokuCloudData>
+    private readonly _customOptions: IchimokuCloudSeriesCustomOptions
 
-    constructor() {
+    constructor(customOptions: IchimokuCloudSeriesCustomOptions = { cloudColor: 'rgba(255, 165, 0, 0.5)' }) {
         this._renderer = new IchimokuCloudSeriesRenderer()
+        this._customOptions = customOptions
     }
 
     defaultOptions(): IchimokuCloudSeriesOptions {
         return {
             ...customSeriesDefaultOptions,
-            cloudColor: 'rgba(255, 165, 0, 0.5)',
+            ...this._customOptions,
         }
     }
 
