@@ -1,5 +1,5 @@
-import { WorkingUnit, WorkingUnitData } from '../../../../../../hexagon/models/indicators.model'
-import { AppState } from '../../../../../../../store/reduxStore'
+import { WorkingUnit, WorkingUnitData } from '../../../../../hexagon/models/indicators.model.ts'
+import { AppState } from '../../../../../../store/reduxStore.ts'
 
 export const ichimokuDrawVM =
     (workingUnit: WorkingUnit = 'horizon') =>

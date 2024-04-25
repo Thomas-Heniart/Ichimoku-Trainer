@@ -55,10 +55,11 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 -[x] VM: Draw only kijun, cloud and lagging for the horizon one
 -[x] Generate some fake data for InMemory and draw using ChartComponent
 -[x] Draw the previous cloud
--[ ] Draw the previous kijun
+-[x] Draw the previous kijun
+-[x] Backend to retrieve indicators with yahoofinance 
+-[ ] HttpAdapter to retrieve indicators
 -[ ] Rebrand ViewModel to match LineData<Time> typing and IchimokuCloudData
 -[ ] Focus on last candle
--[ ] HttpAdapters
 
 ## Backlog
 
@@ -66,5 +67,5 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 - Choose between entering a position (buy or sell) or skip
 - Retrieve next ticker
 - Do you want to close the position
-    - Yes -> won pips
+    - Yes -> won/lost pips
     - No -> Retrieve next tickers

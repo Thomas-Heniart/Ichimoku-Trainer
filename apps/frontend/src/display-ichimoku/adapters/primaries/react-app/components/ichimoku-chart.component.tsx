@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux'
-import { ichimokuDrawVM } from '../view-models-generators/ichimoku-draw/__test__/ichimoku-draw-vm.selector.ts'
+import { ichimokuDrawVM } from '../view-models-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useEffect, useRef, useState } from 'react'
 import { CandlestickData, ColorType, createChart, UTCTimestamp } from 'lightweight-charts'
 import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
@@ -52,8 +52,8 @@ export const IchimokuChartComponent = (props: {
         const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
             time: (data.timestamps[i] / 1000) as UTCTimestamp,
             open: data.candles.open[i],
-            high: data.candles.max[i],
-            low: data.candles.min[i],
+            high: data.candles.high[i],
+            low: data.candles.low[i],
             close,
         }))
         candlestickSeries.setData(candleStickData)

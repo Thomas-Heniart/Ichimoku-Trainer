@@ -1,5 +1,11 @@
+export type IndicatorsQuery = {
+    symbol: string
+    date: Date
+    intervals: Array<TradingInterval>
+}
+export type TradingInterval = '1wk' | '1d' | '1h' | '15m'
+export type TradingTimeUnit = 'ST' | 'MT'
 export type Indicators = Record<WorkingUnit, WorkingUnitData>
-
 export type WorkingUnit = 'horizon' | 'graphical' | 'intervention'
 export type WorkingUnitData = {
     timestamps: Array<number>

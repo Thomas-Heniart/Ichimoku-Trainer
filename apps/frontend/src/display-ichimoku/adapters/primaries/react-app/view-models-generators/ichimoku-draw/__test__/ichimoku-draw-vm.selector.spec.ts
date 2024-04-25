@@ -2,7 +2,7 @@ import { initReduxStore, ReduxStore } from '../../../../../../../store/reduxStor
 import { indicatorsSlice } from '../../../../../../hexagon/reducers/indicators.slice'
 import { AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-indicators/__test__/retrieve-indicators.spec'
 import { WorkingUnitData } from '../../../../../../hexagon/models/indicators.model'
-import { ichimokuDrawVM } from './ichimoku-draw-vm.selector'
+import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
 
 describe('Ichimoku draw view model generators', () => {
     let store: ReduxStore
@@ -143,8 +143,8 @@ describe('Ichimoku draw view model generators', () => {
                     candles: {
                         open: [...acc.candles.open, i],
                         close: [...acc.candles.close, i],
-                        max: [...acc.candles.max, i],
-                        min: [...acc.candles.min, i],
+                        high: [...acc.candles.high, i],
+                        low: [...acc.candles.low, i],
                     },
                     tenkan: [...acc.tenkan, i],
                     kijun: [...acc.kijun, i],
@@ -158,8 +158,8 @@ describe('Ichimoku draw view model generators', () => {
                 candles: {
                     open: [],
                     close: [],
-                    max: [],
-                    min: [],
+                    high: [],
+                    low: [],
                 },
                 tenkan: [],
                 kijun: [],
