@@ -2,7 +2,7 @@ import { UTCDate } from '@date-fns/utc'
 import { isBefore, isEqual } from 'date-fns'
 import { detectTradingAlarm } from '../detect-trading-alarm'
 import { IchimokuKline, IchimokuKlines } from '../../../models/ichimoku-klines'
-import { TradingAlarm } from '../../../models/trading-alarm'
+import { TradingAlarm, TradingHorizon } from '../../../models/trading-alarm'
 import { IchimokuKlineDatasource } from '../../../ports/ichimoku-kline.datasource'
 
 describe('Detect trading alarm', () => {
@@ -47,6 +47,40 @@ describe('Detect trading alarm', () => {
             side: 'LONG',
             date: new UTCDate('2023-01-02'),
         })
+    })
+
+    it('retrieves data based on given trading horizon', async () => {
+        sut.feedWith(
+            [
+                arbitraryKline({
+                    openDate: new UTCDate('2023-01-01'),
+                    close: 100,
+                    tenkan: 99,
+                    kijun: 100,
+                    ssa: 99,
+                    ssb: 98,
+                }),
+                arbitraryKline({
+                    openDate: new UTCDate('2023-01-02'),
+                    close: 100,
+                    tenkan: 101,
+                    kijun: 100,
+                    ssa: 99,
+                    ssb: 98,
+                }),
+                arbitraryKline({
+                    openDate: new UTCDate('2023-01-03'),
+                    close: 100,
+                    tenkan: 101,
+                    kijun: 100,
+                    ssa: 99,
+                    ssb: 98,
+                }),
+            ],
+            'MID_TERM',
+        )
+
+        expect(await sut.detectAlarm(new UTCDate('2023-01-02'), 'SHORT_TERM')).toEqual<TradingAlarm | null>(null)
     })
 
     describe('LONG side ESTABLISHED_TREND', () => {
@@ -161,25 +195,26 @@ describe('Detect trading alarm', () => {
 
     class SUT {
         private readonly _ichimokuKlineDatasource = new StubIchimokuKlineDatasource()
-        feedWith(klines: IchimokuKlines) {
-            this._ichimokuKlineDatasource.klines = klines
+        feedWith(klines: IchimokuKlines, tradingHorizon: TradingHorizon = 'MID_TERM') {
+            this._ichimokuKlineDatasource.klines[tradingHorizon] = klines
         }
 
-        async detectAlarm(date: UTCDate) {
-            return detectTradingAlarm({ ichimokuKlineDatasource: this._ichimokuKlineDatasource })({ date })
+        async detectAlarm(date: UTCDate, tradingHorizon: TradingHorizon = 'MID_TERM') {
+            return detectTradingAlarm({ ichimokuKlineDatasource: this._ichimokuKlineDatasource })({
+                date,
+                tradingHorizon,
+            })
         }
     }
 })
 
 class StubIchimokuKlineDatasource implements IchimokuKlineDatasource {
-    private _klines: IchimokuKlines
+    public klines: Partial<Record<TradingHorizon, IchimokuKlines>> = {}
 
-    async retrieveKlines(date: UTCDate) {
-        return this._klines.filter((k) => isBefore(k.openDate, date) || isEqual(k.openDate, date))
-    }
-
-    set klines(value: IchimokuKlines) {
-        this._klines = value
+    async retrieveKlines(date: UTCDate, tradingHorizon: TradingHorizon) {
+        return (this.klines[tradingHorizon] || []).filter(
+            (k) => isBefore(k.openDate, date) || isEqual(k.openDate, date),
+        )
     }
 }
 

@@ -1,12 +1,18 @@
 import { UTCDate } from '@date-fns/utc'
 import { IchimokuKline } from '../../models/ichimoku-klines'
-import { TradingAlarm } from '../../models/trading-alarm'
+import { TradingAlarm, TradingHorizon } from '../../models/trading-alarm'
 import { IchimokuKlineDatasource } from '../../ports/ichimoku-kline.datasource'
 
 export const detectTradingAlarm =
     ({ ichimokuKlineDatasource }: { ichimokuKlineDatasource: IchimokuKlineDatasource }) =>
-    async ({ date }: { date: UTCDate }): Promise<TradingAlarm | null> => {
-        const klines = await ichimokuKlineDatasource.retrieveKlines(date)
+    async ({
+        date,
+        tradingHorizon,
+    }: {
+        date: UTCDate
+        tradingHorizon: TradingHorizon
+    }): Promise<TradingAlarm | null> => {
+        const klines = await ichimokuKlineDatasource.retrieveKlines(date, tradingHorizon)
         if (klines.length < 2) return null
         const previous = klines[klines.length - 2]
         const last = klines[klines.length - 1]
@@ -19,7 +25,7 @@ export const detectTradingAlarm =
         return null
     }
 
-export type DetectAlarmUseCase = ReturnType<typeof detectTradingAlarm>
+export type DetectTradingAlarm = ReturnType<typeof detectTradingAlarm>
 const isTenkanBreakingClose = (previous: IchimokuKline, last: IchimokuKline) =>
     previous.tenkan < last.close && last.close < last.tenkan
 const isInBullishTrend = (previous: IchimokuKline, last: IchimokuKline) => {
