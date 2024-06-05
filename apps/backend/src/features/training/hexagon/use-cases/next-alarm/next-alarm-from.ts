@@ -21,3 +21,5 @@ const nextDate = (date: UTCDate, tradingHorizon: TradingHorizon) => {
     if (tradingHorizon === 'MID_TERM') return addDays(date, 1)
     return addHours(date, 1)
 }
+
+export type NextAlarmFrom = ReturnType<typeof nextAlarmFrom>
