@@ -12,6 +12,9 @@ export class TradingAlarmController {
     @Get('/from')
     async from(@Query('date') date: number) {
         const from = new UTCDate(fromUnixTime(date / 1000))
-        return await this._nextAlarmFrom({ from, tradingHorizon: 'SHORT_TERM' })
+        const alarm = await this._nextAlarmFrom({ from, tradingHorizon: 'SHORT_TERM' })
+        return {
+            alarm,
+        }
     }
 }

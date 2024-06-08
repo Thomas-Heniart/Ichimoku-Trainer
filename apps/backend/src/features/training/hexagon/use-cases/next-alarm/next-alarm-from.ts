@@ -2,11 +2,17 @@ import { DetectTradingAlarm } from '../../../../trading-alarm/hexagon/use-cases/
 import { UTCDate } from '@date-fns/utc'
 import { addDays, addHours } from 'date-fns'
 
-import { TradingHorizon } from '../../../../trading-alarm/hexagon/models/trading-alarm'
+import { TradingAlarm, TradingHorizon } from '../../../../trading-alarm/hexagon/models/trading-alarm'
 
 export const nextAlarmFrom =
     ({ detectAlarm, maxRetries }: { detectAlarm: DetectTradingAlarm; maxRetries: number }) =>
-    async ({ from, tradingHorizon }: { from: UTCDate; tradingHorizon: TradingHorizon }) => {
+    async ({
+        from,
+        tradingHorizon,
+    }: {
+        from: UTCDate
+        tradingHorizon: TradingHorizon
+    }): Promise<TradingAlarm | null> => {
         if (!maxRetries) return null
         return (
             (await detectAlarm({ date: from, tradingHorizon })) ||
