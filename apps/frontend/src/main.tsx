@@ -1,17 +1,19 @@
 import App from './App'
 import reportWebVitals from './reportWebVitals'
-import { initReduxStore } from './store/reduxStore'
-import { symbolGatewayFactory } from './display-ichimoku/config/dependencies/symbol-gateway.config'
+import { initReduxStore } from './common/store/reduxStore'
+import { symbolGatewayFactory } from './features/display-ichimoku/config/dependencies/symbol-gateway.config'
 import { Provider } from 'react-redux'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
-import { indicatorGatewayFactory } from './display-ichimoku/config/dependencies/indicator-gateway.config.ts'
+import { indicatorGatewayFactory } from './features/display-ichimoku/config/dependencies/indicator-gateway.config.ts'
+import { trainingDependencies } from './features/training/config/dependencies.ts'
 
 const root = createRoot(document.getElementById('root') as HTMLElement)
 
 const store = initReduxStore({
     symbolGateway: symbolGatewayFactory(),
     indicatorGateway: indicatorGatewayFactory(),
+    ...trainingDependencies(),
 })
 
 root.render(
