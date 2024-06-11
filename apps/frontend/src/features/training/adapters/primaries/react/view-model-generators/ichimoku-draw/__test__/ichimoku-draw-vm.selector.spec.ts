@@ -1,8 +1,8 @@
 import { initReduxStore, ReduxStore } from '../../../../../../../../common/store/reduxStore.ts'
-import { indicatorsSlice } from '../../../../../../hexagon/reducers/indicators.slice.ts'
-import { ALARM_INDICATORS } from '../../../../../../../training/hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
-import { WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
+import { ALARM_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
+import { Indicators, WorkingUnitData } from '../../../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
 import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
+import { retrieveAlarmIndicators } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 
 describe('Ichimoku draw view model generators', () => {
     let store: ReduxStore
@@ -11,16 +11,12 @@ describe('Ichimoku draw view model generators', () => {
         store = initReduxStore({})
     })
 
-    test('does not have drawing data initially', () => {
+    it('does not have drawing data initially', () => {
         expect(ichimokuDrawVM()(store.getState())).toEqual(null)
     })
 
     it('draws the horizon working unit by default', () => {
-        store.dispatch(
-            indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: ALARM_INDICATORS,
-            }),
-        )
+        onIndicatorsRetrieved(ALARM_INDICATORS)
 
         expect(ichimokuDrawVM()(store.getState())).toEqual({
             ...ALARM_INDICATORS['horizon'],
@@ -38,15 +34,11 @@ describe('Ichimoku draw view model generators', () => {
         const horizonData = arbitraryIndicatorsBasedOnTimestampsIndex(horizonTimestamps)
         const graphicalData = arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps)
         const interventionData = arbitraryIndicatorsBasedOnTimestampsIndex(interventionTimestamps)
-        store.dispatch(
-            indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: {
-                    horizon: horizonData,
-                    graphical: graphicalData,
-                    intervention: interventionData,
-                },
-            }),
-        )
+        onIndicatorsRetrieved({
+            horizon: horizonData,
+            graphical: graphicalData,
+            intervention: interventionData,
+        })
 
         expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
@@ -64,15 +56,11 @@ describe('Ichimoku draw view model generators', () => {
         const horizonData = arbitraryIndicatorsBasedOnTimestampsIndex(horizonTimestamps)
         const graphicalData = arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps)
         const interventionData = arbitraryIndicatorsBasedOnTimestampsIndex(interventionTimestamps)
-        store.dispatch(
-            indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: {
-                    horizon: horizonData,
-                    graphical: graphicalData,
-                    intervention: interventionData,
-                },
-            }),
-        )
+        onIndicatorsRetrieved({
+            horizon: horizonData,
+            graphical: graphicalData,
+            intervention: interventionData,
+        })
 
         expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
@@ -90,15 +78,11 @@ describe('Ichimoku draw view model generators', () => {
         const horizonData = arbitraryIndicatorsBasedOnTimestampsIndex(horizonTimestamps)
         const graphicalData = arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps)
         const interventionData = arbitraryIndicatorsBasedOnTimestampsIndex(interventionTimestamps)
-        store.dispatch(
-            indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: {
-                    horizon: horizonData,
-                    graphical: graphicalData,
-                    intervention: interventionData,
-                },
-            }),
-        )
+        onIndicatorsRetrieved({
+            horizon: horizonData,
+            graphical: graphicalData,
+            intervention: interventionData,
+        })
 
         expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
@@ -116,15 +100,11 @@ describe('Ichimoku draw view model generators', () => {
         const horizonData = arbitraryIndicatorsBasedOnTimestampsIndex(horizonTimestamps)
         const graphicalData = arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps)
         const interventionData = arbitraryIndicatorsBasedOnTimestampsIndex(interventionTimestamps)
-        store.dispatch(
-            indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: {
-                    horizon: horizonData,
-                    graphical: graphicalData,
-                    intervention: interventionData,
-                },
-            }),
-        )
+        onIndicatorsRetrieved({
+            horizon: horizonData,
+            graphical: graphicalData,
+            intervention: interventionData,
+        })
 
         expect(ichimokuDrawVM('intervention')(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
@@ -134,6 +114,15 @@ describe('Ichimoku draw view model generators', () => {
             previousLagging: graphicalData.lagging,
         })
     })
+
+    const onIndicatorsRetrieved = (indicators: Indicators) => {
+        store.dispatch({
+            type: retrieveAlarmIndicators.fulfilled.type,
+            payload: {
+                indicators,
+            },
+        })
+    }
 
     const arbitraryIndicatorsBasedOnTimestampsIndex = (timestamps: Array<number>): WorkingUnitData => {
         return timestamps.reduce<WorkingUnitData>(

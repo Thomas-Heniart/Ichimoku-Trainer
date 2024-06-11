@@ -1,11 +1,11 @@
-import { WorkingUnit, WorkingUnitData } from '../../../../../hexagon/models/indicators.model.ts'
+import { WorkingUnit, WorkingUnitData } from '../../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
 import { AppState } from '../../../../../../../common/store/reduxStore.ts'
 
 export const ichimokuDrawVM =
     (workingUnit: WorkingUnit = 'horizon') =>
     (state: AppState): IchimokuDrawVM => {
-        if (!state.indicators) return null
-        const workingUnitData = state.indicators[workingUnit]
+        if (!state.training.indicators) return null
+        const workingUnitData = state.training.indicators[workingUnit]
         const longerWorkingUnit = longerWorkingUnits[workingUnit]
         if (!longerWorkingUnit)
             return {
@@ -15,7 +15,7 @@ export const ichimokuDrawVM =
                 previousSsb: [],
                 previousLagging: [],
             }
-        const zoomedWorkingUnitData = state.indicators[longerWorkingUnit]
+        const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
         return {
             ...workingUnitData,
             ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),

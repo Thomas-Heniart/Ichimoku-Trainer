@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux'
-import { ichimokuDrawVM } from '../view-models-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
+import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useEffect, useRef, useState } from 'react'
 import { CandlestickData, ColorType, createChart, UTCTimestamp } from 'lightweight-charts'
-import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
+import { WorkingUnit } from '../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
 
 export const IchimokuChartComponent = (props: {
