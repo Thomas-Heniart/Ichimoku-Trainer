@@ -1,83 +1,60 @@
-import { addDays } from 'date-fns'
-import { AppState, initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
-import { IndicatorsQuery, retrieveIndicators } from '../retrieve-indicators.ts'
-import { Indicators } from '../../../models/indicators.model.ts'
-import { IndicatorGateway } from '../../../ports/indicator.gateway.ts'
+import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
+import { retrieveAlarmIndicators } from '../retrieve-alarm-indicators.ts'
+import { Indicators } from '../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
+import { IndicatorGateway } from '../../../../../display-ichimoku/hexagon/ports/indicator.gateway.ts'
+import { launchTraining } from '../../launch-training/launch-training.ts'
+import { TradingAlarm } from '../../../models/trading-alarm.ts'
+import { UTCDate } from '@date-fns/utc'
+import { addDays, isEqual } from 'date-fns'
 
 describe('Retrieve indicators', () => {
     let store: ReduxStore
-    let initialState: AppState
     let indicatorGateway: StubIndicatorGateway
 
     beforeEach(() => {
         indicatorGateway = new StubIndicatorGateway()
         store = initReduxStore({ indicatorGateway })
-        initialState = store.getState()
     })
 
     it('has no indicators initially', () => {
-        expect(store.getState()).toEqual({
-            ...initialState,
-            indicators: null,
-        })
+        expect(store.getState().training.indicators).toEqual(null)
     })
 
-    it('retrieves indicators related to symbol, timeUnit and startDate', async () => {
-        const today = new Date()
-        const yesterday = addDays(today, -1)
+    it('retrieves indicators of current alarm', async () => {
+        const alarm: TradingAlarm = {
+            date: '2023-06-17T01:00:00.000Z',
+            type: 'ESTABLISHED_TREND',
+            side: 'LONG',
+        }
+        store.dispatch({ type: launchTraining.fulfilled.type, payload: { alarm } })
+        const alarmDate = new UTCDate(alarm.date)
         indicatorGateway
-            .feedWith(
-                {
-                    symbol: 'AAPL',
-                    timeUnit: 'ST',
-                    startDate: today,
-                },
-                AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS,
-            )
-            .feedWith(
-                {
-                    symbol: 'BTCUSD',
-                    timeUnit: 'MT',
-                    startDate: yesterday,
-                },
-                BTCUSD_MID_TERM_YESTERDAY_ARBITRARY_INDICATORS,
-            )
+            .feedWith(alarmDate, ALARM_INDICATORS)
+            .feedWith(addDays(alarmDate, -1), ANOTHER_ALARM_INDICATORS)
 
-        await store.dispatch(
-            retrieveIndicators({
-                symbol: 'AAPL',
-                timeUnit: 'ST',
-                startDate: today,
-            }),
-        )
+        await store.dispatch(retrieveAlarmIndicators())
 
-        expect(store.getState()).toEqual({
-            ...initialState,
-            indicators: AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS,
-        })
+        expect(store.getState().training.indicators).toEqual(ALARM_INDICATORS)
     })
 })
 
 class StubIndicatorGateway implements IndicatorGateway {
     private readonly _indicators: Array<{
-        query: IndicatorsQuery
+        date: UTCDate
         indicators: Indicators
     }> = []
 
-    async retrieveIndicators(query: IndicatorsQuery): Promise<Indicators> {
-        return this._indicators.find(
-            ({ query: q1 }) =>
-                q1.symbol === query.symbol && q1.timeUnit === query.timeUnit && q1.startDate === query.startDate,
-        )!.indicators
+    async retrieveIndicators(date: UTCDate): Promise<Indicators> {
+        return this._indicators.find(({ date: d }) => isEqual(d, date))!.indicators
     }
 
-    feedWith(query: IndicatorsQuery, indicators: Indicators) {
-        this._indicators.push({ query, indicators })
+    feedWith(date: UTCDate, indicators: Indicators) {
+        this._indicators.push({ date, indicators })
         return this
     }
 }
 
-export const AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS: Indicators = {
+export const ALARM_INDICATORS: Indicators = {
     horizon: {
         timestamps: [1],
         candles: {
@@ -122,7 +99,7 @@ export const AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS: Indicators = {
     },
 }
 
-const BTCUSD_MID_TERM_YESTERDAY_ARBITRARY_INDICATORS: Indicators = {
+const ANOTHER_ALARM_INDICATORS: Indicators = {
     horizon: {
         timestamps: [19],
         candles: {

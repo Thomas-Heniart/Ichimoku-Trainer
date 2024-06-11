@@ -1,6 +1,6 @@
 import { initReduxStore, ReduxStore } from '../../../../../../../../common/store/reduxStore.ts'
 import { indicatorsSlice } from '../../../../../../hexagon/reducers/indicators.slice.ts'
-import { AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-indicators/__test__/retrieve-indicators.spec.ts'
+import { ALARM_INDICATORS } from '../../../../../../../training/hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
 import { WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
 import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
 
@@ -18,12 +18,12 @@ describe('Ichimoku draw view model generators', () => {
     it('draws the horizon working unit by default', () => {
         store.dispatch(
             indicatorsSlice.actions.indicatorsRetrieved({
-                indicators: AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS,
+                indicators: ALARM_INDICATORS,
             }),
         )
 
         expect(ichimokuDrawVM()(store.getState())).toEqual({
-            ...AAPL_SHORT_TIME_TODAY_ARBITRARY_INDICATORS['horizon'],
+            ...ALARM_INDICATORS['horizon'],
             previousKijun: [],
             previousSsa: [],
             previousSsb: [],

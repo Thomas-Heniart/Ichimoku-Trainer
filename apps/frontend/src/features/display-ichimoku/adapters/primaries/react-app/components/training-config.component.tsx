@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '../../../../../../common/store/reduxStore.ts'
 import { symbolsVM } from '../view-models-generators/symbols/symbols-vm.ts'
 import { retrieveSymbols } from '../../../../hexagon/use-cases/retrieve-symbols/retrieve-symbols.ts'
-import { retrieveIndicators } from '../../../../hexagon/use-cases/retrieve-indicators/retrieve-indicators.ts'
+import { retrieveAlarmIndicators } from '../../../../../training/hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { TradingSymbol } from '../../../../hexagon/models/trading-symbol.model.ts'
 import { TradingTimeUnit } from '../../../../hexagon/models/trading-time-unit.model.ts'
 
@@ -21,7 +21,7 @@ export const TrainingConfigComponent = () => {
     const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault()
         dispatch(
-            retrieveIndicators({
+            retrieveAlarmIndicators({
                 symbol,
                 timeUnit,
                 startDate: startDate!,
