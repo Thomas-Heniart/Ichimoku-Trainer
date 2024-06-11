@@ -1,4 +1,5 @@
 import { TrainingHomepage } from './features/training/adapters/primaries/react/components/training-homepage.tsx'
+import { CurrentAlarm } from './features/training/adapters/primaries/react/components/current-alarm.tsx'
 
 export default function App() {
     return (
@@ -8,6 +9,7 @@ export default function App() {
             </header>
             <main>
                 <TrainingHomepage />
+                <CurrentAlarm />
             </main>
         </>
     )
