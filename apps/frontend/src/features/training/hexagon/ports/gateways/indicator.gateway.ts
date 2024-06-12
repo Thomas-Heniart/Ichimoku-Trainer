@@ -1,4 +1,4 @@
-import { Indicators } from '../models/indicators.model.ts'
+import { Indicators } from '../../models/indicators.model.ts'
 import { UTCDate } from '@date-fns/utc'
 
 export interface IndicatorGateway {

@@ -1,4 +1,4 @@
-import { WorkingUnit, WorkingUnitData } from '../../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
+import { WorkingUnit, WorkingUnitData } from '../../../../../hexagon/models/indicators.model.ts'
 import { AppState } from '../../../../../../../common/store/reduxStore.ts'
 
 export const ichimokuDrawVM =

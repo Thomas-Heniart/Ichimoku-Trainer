@@ -1,7 +1,7 @@
 import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
 import { retrieveAlarmIndicators } from '../retrieve-alarm-indicators.ts'
-import { Indicators } from '../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
-import { IndicatorGateway } from '../../../../../display-ichimoku/hexagon/ports/indicator.gateway.ts'
+import { Indicators } from '../../../models/indicators.model.ts'
+import { IndicatorGateway } from '../../../ports/gateways/indicator.gateway.ts'
 import { launchTraining } from '../../launch-training/launch-training.ts'
 import { TradingAlarm } from '../../../models/trading-alarm.ts'
 import { UTCDate } from '@date-fns/utc'
@@ -35,6 +35,14 @@ describe('Retrieve indicators', () => {
         await store.dispatch(retrieveAlarmIndicators())
 
         expect(store.getState().training.indicators).toEqual(ALARM_INDICATORS)
+    })
+
+    it('does not retrieve indicators when there is no alarm', async () => {
+        store.dispatch({ type: launchTraining.fulfilled.type, payload: { alarm: null } })
+
+        await store.dispatch(retrieveAlarmIndicators())
+
+        expect(store.getState().training.indicators).toEqual(null)
     })
 })
 

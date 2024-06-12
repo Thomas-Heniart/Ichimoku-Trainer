@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import { TradingAlarm } from '../models/trading-alarm.ts'
-import { Indicators } from '../../../display-ichimoku/hexagon/models/indicators.model.ts'
+import { Indicators } from '../models/indicators.model.ts'
 import { retrieveAlarmIndicators } from '../use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { launchTraining } from '../use-cases/launch-training/launch-training.ts'
 
@@ -13,6 +13,7 @@ const initialState = (): State => ({
     alarm: null,
     indicators: null,
 })
+
 export const trainingSlice = createSlice({
     name: 'training',
     initialState,

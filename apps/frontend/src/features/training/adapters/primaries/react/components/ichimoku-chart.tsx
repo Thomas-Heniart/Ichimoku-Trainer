@@ -2,10 +2,10 @@ import { useSelector } from 'react-redux'
 import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useEffect, useRef, useState } from 'react'
 import { CandlestickData, ColorType, createChart, UTCTimestamp } from 'lightweight-charts'
-import { WorkingUnit } from '../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
+import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
 
-export const IchimokuChartComponent = (props: {
+export const IchimokuChart = (props: {
     colors?:
         | {
               backgroundColor?: 'white' | undefined
@@ -149,6 +149,8 @@ export const IchimokuChartComponent = (props: {
             chart.remove()
         }
     }, [backgroundColor, data, textColor])
+
+    if (!data) return <></>
 
     return (
         <>

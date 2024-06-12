@@ -1,6 +1,6 @@
 import { initReduxStore, ReduxStore } from '../../../../../../../../common/store/reduxStore.ts'
 import { ALARM_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
-import { Indicators, WorkingUnitData } from '../../../../../../../display-ichimoku/hexagon/models/indicators.model.ts'
+import { Indicators, WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
 import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
 import { retrieveAlarmIndicators } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 

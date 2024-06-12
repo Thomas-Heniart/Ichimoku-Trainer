@@ -1,5 +1,6 @@
 import { TrainingHomepage } from './features/training/adapters/primaries/react/components/training-homepage.tsx'
 import { CurrentAlarm } from './features/training/adapters/primaries/react/components/current-alarm.tsx'
+import { IchimokuChart } from './features/training/adapters/primaries/react/components/ichimoku-chart.tsx'
 
 export default function App() {
     return (
@@ -10,6 +11,7 @@ export default function App() {
             <main>
                 <TrainingHomepage />
                 <CurrentAlarm />
+                <IchimokuChart />
             </main>
         </>
     )
