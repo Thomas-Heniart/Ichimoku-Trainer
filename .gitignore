@@ -2,3 +2,5 @@
 node_modules/
 .turbo
 .eslintcache
+.vercel
+.env*.local
