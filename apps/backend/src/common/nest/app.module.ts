@@ -8,7 +8,7 @@ import { TrainingModule } from '../../features/training/adapters/primaries/nest/
 @Module({
     imports: [
         ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '../..', 'frontend', 'dist'),
+            rootPath: join(__dirname, '../../../../', 'frontend', 'dist'),
         }),
         IchimokuIndicatorsModule,
         TradingAlarmModule,
