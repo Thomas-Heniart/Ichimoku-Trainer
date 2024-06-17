@@ -1,8 +1,7 @@
 import { UTCDate } from '@date-fns/utc'
-import { Indicators, WorkingUnit } from '../../../hexagon/models/indicators'
+import { Indicators, WorkingUnit, WorkingUnitData } from '../../../hexagon/models/indicators'
 import { IchimokuChartDatasource } from '../../../hexagon/ports/ichimoku-chart.datasource'
 import { Interval, Spot } from '@binance/connector-typescript'
-import { WorkingUnitData } from '../../../../ichimoku-indicators/hexagon/models/indicators'
 import { addDays, addHours, addMinutes, startOfDay, startOfHour } from 'date-fns'
 import { ichimokuCloud } from 'indicatorts'
 
