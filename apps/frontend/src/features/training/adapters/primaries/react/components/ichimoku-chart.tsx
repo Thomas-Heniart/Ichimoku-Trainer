@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux'
 import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useEffect, useRef, useState } from 'react'
-import { CandlestickData, ColorType, createChart, UTCTimestamp } from 'lightweight-charts'
+import { CandlestickData, ColorType, createChart, CrosshairMode, LineStyle, UTCTimestamp } from 'lightweight-charts'
 import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
 
@@ -47,6 +47,9 @@ export const IchimokuChart = (props: {
             height: 750,
         })
         chart.timeScale().fitContent()
+        chart.timeScale().applyOptions({
+            timeVisible: true,
+        })
 
         const candlestickSeries = chart.addCandlestickSeries()
         const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
@@ -83,6 +86,18 @@ export const IchimokuChart = (props: {
             ),
         )
 
+        const cloudSeriesView = new IchimokuCloudSeries()
+        const cloudSeries = chart.addCustomSeries(cloudSeriesView)
+        cloudSeries.setData(
+            data.ssb.reduce(
+                (acc, ssb, i) => {
+                    if (!ssb) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
+                },
+                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+            ),
+        )
+
         if (data.previousKijun.length) {
             const previousKijunSeries = chart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
             previousKijunSeries.setData(
@@ -95,18 +110,6 @@ export const IchimokuChart = (props: {
                 ),
             )
         }
-
-        const cloudSeriesView = new IchimokuCloudSeries()
-        const cloudSeries = chart.addCustomSeries(cloudSeriesView)
-        cloudSeries.setData(
-            data.ssb.reduce(
-                (acc, ssb, i) => {
-                    if (!ssb) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
-                },
-                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
-            ),
-        )
 
         if (data.previousSsb.length) {
             const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' })
@@ -138,6 +141,30 @@ export const IchimokuChart = (props: {
                 [] as Array<{ time: UTCTimestamp; value: number }>,
             ),
         )
+
+        chart.applyOptions({
+            crosshair: {
+                mode: CrosshairMode.Normal,
+                vertLine: {
+                    width: 4,
+                    color: '#C3BCDB44',
+                    style: LineStyle.Solid,
+                    labelBackgroundColor: '#9B7DFF',
+                },
+                horzLine: {
+                    color: '#9B7DFF',
+                    labelBackgroundColor: '#9B7DFF',
+                },
+            },
+            leftPriceScale: {
+                autoScale: true,
+                visible: true,
+            },
+            rightPriceScale: {
+                autoScale: true,
+                visible: true,
+            },
+        })
 
         window.addEventListener('resize', handleResize)
 
