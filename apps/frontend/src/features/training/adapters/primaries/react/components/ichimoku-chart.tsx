@@ -195,9 +195,9 @@ export const IchimokuChart = (props: {
                 value={workingUnit}
                 onChange={(e) => setWorkingUnit(e.target.value as WorkingUnit)}
             >
-                <option value={'horizon'}>Horizon</option>
-                <option value={'graphical'}>Graphical</option>
-                <option value={'intervention'}>Intervention</option>
+                <option value={'horizon'}>Horizon (1d)</option>
+                <option value={'graphical'}>Graphical (1h)</option>
+                <option value={'intervention'}>Intervention (15m)</option>
             </select>
             {currentCandle && (
                 <div>
