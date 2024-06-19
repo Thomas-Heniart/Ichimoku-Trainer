@@ -1,10 +1,19 @@
 import { useSelector } from 'react-redux'
 import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useEffect, useRef, useState } from 'react'
-import { CandlestickData, ColorType, createChart, CrosshairMode, LineStyle, UTCTimestamp } from 'lightweight-charts'
+import {
+    AutoscaleInfo,
+    CandlestickData,
+    ColorType,
+    createChart,
+    CrosshairMode,
+    LineStyle,
+    UTCTimestamp,
+} from 'lightweight-charts'
 import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
 import { useDebounce } from '../../../../../../common/react/use-debounce.tsx'
+import { AppState } from '../../../../../../common/store/reduxStore.ts'
 
 type CandleVM = null | { time: Date; open: number; close: number; low: number; high: number }
 
@@ -22,6 +31,12 @@ export const IchimokuChart = (props: {
     const data = useSelector(ichimokuDrawVM(workingUnit))
     const { colors: { backgroundColor = 'white', textColor = 'black' } = {} } = props
     const chartContainerRef = useRef<HTMLDivElement>(null)
+
+    const alarm = useSelector((state: AppState) => state.training.alarm)
+
+    useEffect(() => {
+        setWorkingUnit('horizon')
+    }, [alarm])
 
     useEffect(() => {
         if (!data || !chartContainerRef.current) return
@@ -107,6 +122,19 @@ export const IchimokuChart = (props: {
                 [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
             ),
         )
+        const allCloudValues = [...data.ssb, ...data.ssa].filter((v) => v > 0)
+        const minValue = Math.min(...allCloudValues)
+        const maxValue = Math.max(...allCloudValues)
+        cloudSeries.applyOptions({
+            autoscaleInfoProvider: (): AutoscaleInfo => {
+                return {
+                    priceRange: {
+                        minValue,
+                        maxValue,
+                    },
+                }
+            },
+        })
 
         if (data.previousKijun.length) {
             const previousKijunSeries = createdChart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
@@ -136,6 +164,19 @@ export const IchimokuChart = (props: {
                     [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
                 ),
             )
+            const allValues = [...data.previousSsb, ...data.previousSsb].filter((v) => v > 0)
+            const minValue = Math.min(...allValues)
+            const maxValue = Math.max(...allValues)
+            previousCloudSeries.applyOptions({
+                autoscaleInfoProvider: (): AutoscaleInfo => {
+                    return {
+                        priceRange: {
+                            minValue,
+                            maxValue,
+                        },
+                    }
+                },
+            })
         }
 
         const laggingSpanSeries = createdChart.addLineSeries({
