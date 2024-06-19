@@ -4,145 +4,36 @@ import { useEffect, useRef, useState } from 'react'
 import { CandlestickData, ColorType, createChart, CrosshairMode, LineStyle, UTCTimestamp } from 'lightweight-charts'
 import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
+import { useDebounce } from '../../../../../../common/react/use-debounce.tsx'
+
+type CandleVM = null | { time: Date; open: number; close: number; low: number; high: number }
 
 export const IchimokuChart = (props: {
     colors?:
         | {
               backgroundColor?: 'white' | undefined
-              lineColor?: '#2962FF' | undefined
               textColor?: 'black' | undefined
-              areaTopColor?: '#2962FF' | undefined
-              areaBottomColor?: 'rgba(41, 98, 255, 0.28)' | undefined
           }
         | undefined
 }) => {
     const [workingUnit, setWorkingUnit] = useState<WorkingUnit>('horizon')
+    const [currentCandle, setCurrentCandle] = useState<CandleVM>(null)
+    const debouncedSetCurrentCandle = useDebounce(setCurrentCandle, 20)
     const data = useSelector(ichimokuDrawVM(workingUnit))
-
-    const {
-        colors: {
-            backgroundColor = 'white',
-            // lineColor = "#2962FF",
-            textColor = 'black',
-            // areaTopColor = "#2962FF",
-            // areaBottomColor = "rgba(41, 98, 255, 0.28)",
-        } = {},
-    } = props
-
+    const { colors: { backgroundColor = 'white', textColor = 'black' } = {} } = props
     const chartContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        if (!data) return
+        if (!data || !chartContainerRef.current) return
 
-        const handleResize = () => {
-            chart.applyOptions({ width: chartContainerRef.current?.clientWidth })
-        }
-
-        const chart = createChart(chartContainerRef.current!, {
+        const createdChart = createChart(chartContainerRef.current, {})
+        createdChart.applyOptions({
             layout: {
                 background: { type: ColorType.Solid, color: backgroundColor },
                 textColor,
             },
-            width: chartContainerRef.current?.clientWidth,
+            width: chartContainerRef.current.clientWidth! * 0.9,
             height: 750,
-        })
-        chart.timeScale().fitContent()
-        chart.timeScale().applyOptions({
-            timeVisible: true,
-        })
-
-        const candlestickSeries = chart.addCandlestickSeries()
-        const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
-            time: (data.timestamps[i] / 1000) as UTCTimestamp,
-            open: data.candles.open[i],
-            high: data.candles.high[i],
-            low: data.candles.low[i],
-            close,
-        }))
-        candlestickSeries.setData(candleStickData)
-
-        const tenkanSeries = chart.addLineSeries({
-            lineWidth: 1,
-            color: '#e5eb34',
-        })
-        tenkanSeries.setData(
-            data.tenkan.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
-        const kijunSeries = chart.addLineSeries({ lineWidth: 1, color: '#3d34eb' })
-        kijunSeries.setData(
-            data.kijun.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
-        const cloudSeriesView = new IchimokuCloudSeries()
-        const cloudSeries = chart.addCustomSeries(cloudSeriesView)
-        cloudSeries.setData(
-            data.ssb.reduce(
-                (acc, ssb, i) => {
-                    if (!ssb) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
-                },
-                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
-            ),
-        )
-
-        if (data.previousKijun.length) {
-            const previousKijunSeries = chart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
-            previousKijunSeries.setData(
-                data.previousKijun.reduce(
-                    (acc, value, i) => {
-                        if (!value) return acc
-                        return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                    },
-                    [] as Array<{ time: UTCTimestamp; value: number }>,
-                ),
-            )
-        }
-
-        if (data.previousSsb.length) {
-            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' })
-            const previousCloudSeries = chart.addCustomSeries(previousCloudSeriesView)
-            previousCloudSeries.setData(
-                data.previousSsb.reduce(
-                    (acc, ssb, i) => {
-                        if (!ssb) return acc
-                        return [
-                            ...acc,
-                            { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.previousSsa[i], ssb },
-                        ]
-                    },
-                    [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
-                ),
-            )
-        }
-
-        const laggingSpanSeries = chart.addLineSeries({
-            lineWidth: 1,
-            color: '#000000',
-        })
-        laggingSpanSeries.setData(
-            data.lagging.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
-        chart.applyOptions({
             crosshair: {
                 mode: CrosshairMode.Normal,
                 vertLine: {
@@ -165,17 +56,133 @@ export const IchimokuChart = (props: {
                 visible: true,
             },
         })
+        createdChart.timeScale().fitContent()
+        createdChart.timeScale().applyOptions({
+            timeVisible: true,
+        })
+
+        const candlestickSeries = createdChart.addCandlestickSeries()
+        const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
+            time: (data.timestamps[i] / 1000) as UTCTimestamp,
+            open: data.candles.open[i],
+            high: data.candles.high[i],
+            low: data.candles.low[i],
+            close,
+        }))
+        candlestickSeries.setData(candleStickData)
+
+        const tenkanSeries = createdChart.addLineSeries({
+            lineWidth: 1,
+            color: '#e5eb34',
+        })
+        tenkanSeries.setData(
+            data.tenkan.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        const kijunSeries = createdChart.addLineSeries({ lineWidth: 1, color: '#3d34eb' })
+        kijunSeries.setData(
+            data.kijun.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        const cloudSeriesView = new IchimokuCloudSeries()
+        const cloudSeries = createdChart.addCustomSeries(cloudSeriesView)
+        cloudSeries.setData(
+            data.ssb.reduce(
+                (acc, ssb, i) => {
+                    if (!ssb) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
+                },
+                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+            ),
+        )
+
+        if (data.previousKijun.length) {
+            const previousKijunSeries = createdChart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
+            previousKijunSeries.setData(
+                data.previousKijun.reduce(
+                    (acc, value, i) => {
+                        if (!value) return acc
+                        return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                    },
+                    [] as Array<{ time: UTCTimestamp; value: number }>,
+                ),
+            )
+        }
+
+        if (data.previousSsb.length) {
+            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' })
+            const previousCloudSeries = createdChart.addCustomSeries(previousCloudSeriesView)
+            previousCloudSeries.setData(
+                data.previousSsb.reduce(
+                    (acc, ssb, i) => {
+                        if (!ssb) return acc
+                        return [
+                            ...acc,
+                            { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.previousSsa[i], ssb },
+                        ]
+                    },
+                    [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+                ),
+            )
+        }
+
+        const laggingSpanSeries = createdChart.addLineSeries({
+            lineWidth: 1,
+            color: '#000000',
+        })
+        laggingSpanSeries.setData(
+            data.lagging.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        // TODO how to fix the debounced always changing problem
+        // createdChart.subscribeCrosshairMove((param) => {
+        //     if (!param || !param.seriesData || param.seriesData.size === 0) {
+        //         debouncedSetCurrentCandle(null)
+        //         return
+        //     }
+        //     const data = param.seriesData.get(candlestickSeries) as BarData
+        //     if (data) {
+        //         debouncedSetCurrentCandle({
+        //             time: new Date(data.time as UTCTimestamp),
+        //             open: data.open,
+        //             close: data.close,
+        //             low: data.low,
+        //             high: data.high,
+        //         })
+        //     }
+        // })
+        console.log('createdChart', { createdChart })
+
+        const handleResize = () => {
+            if (createdChart) createdChart.applyOptions({ width: chartContainerRef.current!.clientWidth! * 0.9 })
+        }
 
         window.addEventListener('resize', handleResize)
-
-        chartContainerRef.current!.scrollIntoView()
-
         return () => {
             window.removeEventListener('resize', handleResize)
 
-            chart.remove()
+            console.log('remove', { createdChart })
+            createdChart.remove()
         }
-    }, [backgroundColor, data, textColor])
+    }, [backgroundColor, data, debouncedSetCurrentCandle, textColor])
 
     if (!data) return <></>
 
@@ -192,6 +199,25 @@ export const IchimokuChart = (props: {
                 <option value={'graphical'}>Graphical</option>
                 <option value={'intervention'}>Intervention</option>
             </select>
+            {currentCandle && (
+                <div>
+                    <span>
+                        <strong>Date:</strong> {currentCandle.time.toString()}
+                    </span>
+                    <span>
+                        <strong>Open:</strong> {currentCandle.open.toString()}
+                    </span>
+                    <span>
+                        <strong>High:</strong> {currentCandle.high.toString()}
+                    </span>
+                    <span>
+                        <strong>Low:</strong> {currentCandle.low.toString()}
+                    </span>
+                    <span>
+                        <strong>Close:</strong> {currentCandle.close.toString()}
+                    </span>
+                </div>
+            )}
             <div ref={chartContainerRef} />
         </>
     )

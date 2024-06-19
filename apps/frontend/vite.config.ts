@@ -7,6 +7,7 @@ export default defineConfig({
     test: {
         include: ['**/*.spec.ts', '**/*.spec.tsx'],
         globals: true,
+        environment: 'jsdom',
     },
     server: {
         proxy: {

@@ -7,9 +7,9 @@ export const CurrentAlarm = () => {
     if (!alarm) return <></>
     return (
         <div>
-            <p>{alarm.date}</p>
-            <p>{alarm.type}</p>
-            <p>{alarm.side}</p>
+            <strong>{alarm.date.toString()}</strong>&emsp;
+            <strong>Type: {alarm.type}</strong>&emsp;
+            <strong>Side: {alarm.side}</strong>
         </div>
     )
 }
