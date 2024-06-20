@@ -1,51 +1,57 @@
-import { useSelector } from 'react-redux'
-import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
-import { useEffect, useRef, useState } from 'react'
+import { IchimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
     AutoscaleInfo,
+    BarData,
     CandlestickData,
     ColorType,
     createChart,
     CrosshairMode,
+    ISeriesApi,
     LineStyle,
+    MouseEventHandler,
+    Time,
     UTCTimestamp,
 } from 'lightweight-charts'
-import { WorkingUnit } from '../../../../hexagon/models/indicators.model.ts'
 import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
-import { useDebounce } from '../../../../../../common/react/use-debounce.tsx'
-import { AppState } from '../../../../../../common/store/reduxStore.ts'
 
 type CandleVM = null | { time: Date; open: number; close: number; low: number; high: number }
 
-export const IchimokuChart = (props: {
-    colors?:
-        | {
-              backgroundColor?: 'white' | undefined
-              textColor?: 'black' | undefined
-          }
-        | undefined
-}) => {
-    const [workingUnit, setWorkingUnit] = useState<WorkingUnit>('horizon')
+export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
+    const chartContainerRef = useRef<HTMLDivElement | null>(null)
+    const candlesticksRef = useRef<ISeriesApi<'Candlestick'>>()
+    const tenkanRef = useRef<ISeriesApi<'Line'>>()
+    const kijunRef = useRef<ISeriesApi<'Line'>>()
+    const cloudRef = useRef<ISeriesApi<'Custom'>>()
+    const laggingSpanRef = useRef<ISeriesApi<'Line'>>()
+    const previousKijunRef = useRef<ISeriesApi<'Line'>>()
+    const previousCloudRef = useRef<ISeriesApi<'Custom'>>()
+
     const [currentCandle, setCurrentCandle] = useState<CandleVM>(null)
-    const debouncedSetCurrentCandle = useDebounce(setCurrentCandle, 20)
-    const data = useSelector(ichimokuDrawVM(workingUnit))
-    const { colors: { backgroundColor = 'white', textColor = 'black' } = {} } = props
-    const chartContainerRef = useRef<HTMLDivElement>(null)
 
-    const alarm = useSelector((state: AppState) => state.training.alarm)
+    const onCrosshairMove = useCallback<MouseEventHandler<Time>>((param) => {
+        if (!candlesticksRef.current) return
+        if (!param || !param.seriesData || param.seriesData.size === 0) return setCurrentCandle(null)
+        const data = param.seriesData.get(candlesticksRef.current) as BarData
+        if (!data) return
+        setCurrentCandle({
+            time: new Date(data.time as UTCTimestamp),
+            open: data.open,
+            close: data.close,
+            low: data.low,
+            high: data.high,
+        })
+        // debouncedSetCurrentCandle()
+    }, [])
 
     useEffect(() => {
-        setWorkingUnit('horizon')
-    }, [alarm])
-
-    useEffect(() => {
-        if (!data || !chartContainerRef.current) return
-
-        const createdChart = createChart(chartContainerRef.current, {})
-        createdChart.applyOptions({
+        if (!chartContainerRef.current || !data) return
+        const chart = createChart(chartContainerRef.current, {})
+        console.log('Je passe ici')
+        chart.applyOptions({
             layout: {
-                background: { type: ColorType.Solid, color: backgroundColor },
-                textColor,
+                background: { type: ColorType.Solid, color: 'white' },
+                textColor: 'black',
             },
             width: chartContainerRef.current.clientWidth! * 0.9,
             height: 750,
@@ -71,12 +77,12 @@ export const IchimokuChart = (props: {
                 visible: true,
             },
         })
-        createdChart.timeScale().fitContent()
-        createdChart.timeScale().applyOptions({
+        chart.timeScale().fitContent()
+        chart.timeScale().applyOptions({
             timeVisible: true,
         })
 
-        const candlestickSeries = createdChart.addCandlestickSeries()
+        candlesticksRef.current = chart.addCandlestickSeries()
         const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
             time: (data.timestamps[i] / 1000) as UTCTimestamp,
             open: data.candles.open[i],
@@ -84,13 +90,13 @@ export const IchimokuChart = (props: {
             low: data.candles.low[i],
             close,
         }))
-        candlestickSeries.setData(candleStickData)
+        candlesticksRef.current.setData(candleStickData)
 
-        const tenkanSeries = createdChart.addLineSeries({
+        tenkanRef.current = chart.addLineSeries({
             lineWidth: 1,
             color: '#e5eb34',
         })
-        tenkanSeries.setData(
+        tenkanRef.current.setData(
             data.tenkan.reduce(
                 (acc, value, i) => {
                     if (!value) return acc
@@ -100,8 +106,8 @@ export const IchimokuChart = (props: {
             ),
         )
 
-        const kijunSeries = createdChart.addLineSeries({ lineWidth: 1, color: '#3d34eb' })
-        kijunSeries.setData(
+        kijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#3d34eb' })
+        kijunRef.current.setData(
             data.kijun.reduce(
                 (acc, value, i) => {
                     if (!value) return acc
@@ -111,9 +117,8 @@ export const IchimokuChart = (props: {
             ),
         )
 
-        const cloudSeriesView = new IchimokuCloudSeries()
-        const cloudSeries = createdChart.addCustomSeries(cloudSeriesView)
-        cloudSeries.setData(
+        cloudRef.current = chart.addCustomSeries(new IchimokuCloudSeries())
+        cloudRef.current.setData(
             data.ssb.reduce(
                 (acc, ssb, i) => {
                     if (!ssb) return acc
@@ -125,7 +130,7 @@ export const IchimokuChart = (props: {
         const allCloudValues = [...data.ssb, ...data.ssa].filter((v) => v > 0)
         const minValue = Math.min(...allCloudValues)
         const maxValue = Math.max(...allCloudValues)
-        cloudSeries.applyOptions({
+        cloudRef.current.applyOptions({
             autoscaleInfoProvider: (): AutoscaleInfo => {
                 return {
                     priceRange: {
@@ -136,9 +141,23 @@ export const IchimokuChart = (props: {
             },
         })
 
+        laggingSpanRef.current = chart.addLineSeries({
+            lineWidth: 1,
+            color: '#000000',
+        })
+        laggingSpanRef.current.setData(
+            data.lagging.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
         if (data.previousKijun.length) {
-            const previousKijunSeries = createdChart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
-            previousKijunSeries.setData(
+            previousKijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
+            previousKijunRef.current.setData(
                 data.previousKijun.reduce(
                     (acc, value, i) => {
                         if (!value) return acc
@@ -150,9 +169,10 @@ export const IchimokuChart = (props: {
         }
 
         if (data.previousSsb.length) {
-            const previousCloudSeriesView = new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' })
-            const previousCloudSeries = createdChart.addCustomSeries(previousCloudSeriesView)
-            previousCloudSeries.setData(
+            previousCloudRef.current = chart.addCustomSeries(
+                new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' }),
+            )
+            previousCloudRef.current.setData(
                 data.previousSsb.reduce(
                     (acc, ssb, i) => {
                         if (!ssb) return acc
@@ -167,7 +187,7 @@ export const IchimokuChart = (props: {
             const allValues = [...data.previousSsb, ...data.previousSsb].filter((v) => v > 0)
             const minValue = Math.min(...allValues)
             const maxValue = Math.max(...allValues)
-            previousCloudSeries.applyOptions({
+            previousCloudRef.current.applyOptions({
                 autoscaleInfoProvider: (): AutoscaleInfo => {
                     return {
                         priceRange: {
@@ -179,86 +199,27 @@ export const IchimokuChart = (props: {
             })
         }
 
-        const laggingSpanSeries = createdChart.addLineSeries({
-            lineWidth: 1,
-            color: '#000000',
-        })
-        laggingSpanSeries.setData(
-            data.lagging.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
-        // TODO how to fix the debounced always changing problem
-        // createdChart.subscribeCrosshairMove((param) => {
-        //     if (!param || !param.seriesData || param.seriesData.size === 0) {
-        //         debouncedSetCurrentCandle(null)
-        //         return
-        //     }
-        //     const data = param.seriesData.get(candlestickSeries) as BarData
-        //     if (data) {
-        //         debouncedSetCurrentCandle({
-        //             time: new Date(data.time as UTCTimestamp),
-        //             open: data.open,
-        //             close: data.close,
-        //             low: data.low,
-        //             high: data.high,
-        //         })
-        //     }
-        // })
-        console.log('createdChart', { createdChart })
-
+        chart.subscribeCrosshairMove(onCrosshairMove)
         const handleResize = () => {
-            if (createdChart) createdChart.applyOptions({ width: chartContainerRef.current!.clientWidth! * 0.9 })
+            if (chartContainerRef.current) {
+                chart.applyOptions({
+                    width: chartContainerRef.current.clientWidth * 0.9,
+                })
+            }
         }
 
         window.addEventListener('resize', handleResize)
+        chartContainerRef.current.scrollIntoView()
         return () => {
+            chart.unsubscribeCrosshairMove(onCrosshairMove)
             window.removeEventListener('resize', handleResize)
-
-            console.log('remove', { createdChart })
-            createdChart.remove()
+            chart.remove()
         }
-    }, [backgroundColor, data, debouncedSetCurrentCandle, textColor])
-
-    if (!data) return <></>
+    }, [data, onCrosshairMove])
 
     return (
         <>
-            <select
-                name="select"
-                aria-label="Select"
-                required
-                value={workingUnit}
-                onChange={(e) => setWorkingUnit(e.target.value as WorkingUnit)}
-            >
-                <option value={'horizon'}>Horizon (1d)</option>
-                <option value={'graphical'}>Graphical (1h)</option>
-                <option value={'intervention'}>Intervention (15m)</option>
-            </select>
-            {currentCandle && (
-                <div>
-                    <span>
-                        <strong>Date:</strong> {currentCandle.time.toString()}
-                    </span>
-                    <span>
-                        <strong>Open:</strong> {currentCandle.open.toString()}
-                    </span>
-                    <span>
-                        <strong>High:</strong> {currentCandle.high.toString()}
-                    </span>
-                    <span>
-                        <strong>Low:</strong> {currentCandle.low.toString()}
-                    </span>
-                    <span>
-                        <strong>Close:</strong> {currentCandle.close.toString()}
-                    </span>
-                </div>
-            )}
+            {currentCandle && <div>{JSON.stringify(currentCandle)}</div>}
             <div ref={chartContainerRef} />
         </>
     )
