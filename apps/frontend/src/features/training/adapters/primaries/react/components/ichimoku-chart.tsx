@@ -41,19 +41,21 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
             low: data.low,
             high: data.high,
         })
-        // debouncedSetCurrentCandle()
     }, [])
 
     useEffect(() => {
         if (!chartContainerRef.current || !data) return
         const chart = createChart(chartContainerRef.current, {})
-        console.log('Je passe ici')
         chart.applyOptions({
             layout: {
-                background: { type: ColorType.Solid, color: 'white' },
-                textColor: 'black',
+                background: { type: ColorType.Solid, color: '#222' },
+                textColor: '#DDD',
             },
-            width: chartContainerRef.current.clientWidth! * 0.9,
+            grid: {
+                vertLines: { color: '#444' },
+                horzLines: { color: '#444' },
+            },
+            width: chartContainerRef.current.clientWidth,
             height: 750,
             crosshair: {
                 mode: CrosshairMode.Normal,
@@ -80,6 +82,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
         chart.timeScale().fitContent()
         chart.timeScale().applyOptions({
             timeVisible: true,
+            borderColor: '#71649C',
         })
 
         candlesticksRef.current = chart.addCandlestickSeries()
@@ -91,10 +94,19 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
             close,
         }))
         candlesticksRef.current.setData(candleStickData)
+        candlesticksRef.current.applyOptions({
+            wickUpColor: 'rgb(70,217,54)',
+            upColor: 'rgb(70,217,54)',
+            wickDownColor: 'rgb(225, 50, 85)',
+            downColor: 'rgb(225, 50, 85)',
+            borderVisible: false,
+            priceLineVisible: false,
+        })
 
         tenkanRef.current = chart.addLineSeries({
             lineWidth: 1,
-            color: '#e5eb34',
+            color: 'rgb(217,195,54)',
+            priceLineVisible: false,
         })
         tenkanRef.current.setData(
             data.tenkan.reduce(
@@ -106,7 +118,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
             ),
         )
 
-        kijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#3d34eb' })
+        kijunRef.current = chart.addLineSeries({ lineWidth: 1, color: 'rgb(54, 116, 217)', priceLineVisible: false })
         kijunRef.current.setData(
             data.kijun.reduce(
                 (acc, value, i) => {
@@ -143,7 +155,8 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
 
         laggingSpanRef.current = chart.addLineSeries({
             lineWidth: 1,
-            color: '#000000',
+            color: '#fff',
+            priceLineVisible: false,
         })
         laggingSpanRef.current.setData(
             data.lagging.reduce(
@@ -156,7 +169,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
         )
 
         if (data.previousKijun.length) {
-            previousKijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#02b72b' })
+            previousKijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#02b72b', priceLineVisible: false })
             previousKijunRef.current.setData(
                 data.previousKijun.reduce(
                     (acc, value, i) => {
@@ -203,7 +216,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
         const handleResize = () => {
             if (chartContainerRef.current) {
                 chart.applyOptions({
-                    width: chartContainerRef.current.clientWidth * 0.9,
+                    width: chartContainerRef.current.clientWidth,
                 })
             }
         }
@@ -219,7 +232,9 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
 
     return (
         <>
-            {currentCandle && <div>{JSON.stringify(currentCandle)}</div>}
+            <div style={{ height: '25px', textAlign: 'center', alignContent: 'center' }}>
+                {currentCandle && JSON.stringify(currentCandle)}
+            </div>
             <div ref={chartContainerRef} />
         </>
     )

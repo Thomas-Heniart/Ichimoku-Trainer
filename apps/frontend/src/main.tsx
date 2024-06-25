@@ -5,6 +5,7 @@ import { Provider } from 'react-redux'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 import { trainingDependencies } from './features/training/config/dependencies.ts'
+import './main.css'
 
 const root = createRoot(document.getElementById('root') as HTMLElement)
 

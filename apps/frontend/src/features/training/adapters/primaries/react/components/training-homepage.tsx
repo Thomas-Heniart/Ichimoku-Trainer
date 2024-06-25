@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../../../../../common/store/reduxStore.ts'
 import { launchTraining } from '../../../../hexagon/use-cases/launch-training/launch-training.ts'
 import { retrieveAlarmIndicators } from '../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
+import './css/training-homepage.css'
 
 export const TrainingHomepage = () => {
     const dispatch = useDispatch<AppDispatch>()
@@ -13,9 +14,5 @@ export const TrainingHomepage = () => {
         })
     }
 
-    return (
-        <div>
-            <button onClick={onClick}>Begin ichimoku training</button>
-        </div>
-    )
+    return <button onClick={onClick}>Begin ichimoku training</button>
 }
