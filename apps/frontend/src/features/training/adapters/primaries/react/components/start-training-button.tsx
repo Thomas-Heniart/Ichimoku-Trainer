@@ -5,7 +5,7 @@ import { launchTraining } from '../../../../hexagon/use-cases/launch-training/la
 import { retrieveAlarmIndicators } from '../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import './css/training-homepage.css'
 
-export const TrainingHomepage = () => {
+export const StartTrainingButton = () => {
     const dispatch = useDispatch<AppDispatch>()
     const onClick: MouseEventHandler<HTMLButtonElement> = (e) => {
         e.preventDefault()

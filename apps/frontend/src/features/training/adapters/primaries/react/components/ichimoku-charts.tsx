@@ -31,25 +31,6 @@ export const IchimokuCharts = () => {
                 <option value={'graphical'}>Graphical (1h)</option>
                 <option value={'intervention'}>Intervention (15m)</option>
             </select>
-            {/*{currentCandle && (*/}
-            {/*    <div>*/}
-            {/*        <span>*/}
-            {/*            <strong>Date:</strong> {currentCandle.time.toString()}*/}
-            {/*        </span>*/}
-            {/*        <span>*/}
-            {/*            <strong>Open:</strong> {currentCandle.open.toString()}*/}
-            {/*        </span>*/}
-            {/*        <span>*/}
-            {/*            <strong>High:</strong> {currentCandle.high.toString()}*/}
-            {/*        </span>*/}
-            {/*        <span>*/}
-            {/*            <strong>Low:</strong> {currentCandle.low.toString()}*/}
-            {/*        </span>*/}
-            {/*        <span>*/}
-            {/*            <strong>Close:</strong> {currentCandle.close.toString()}*/}
-            {/*        </span>*/}
-            {/*    </div>*/}
-            {/*)}*/}
             <IchimokuChart data={data} />
         </>
     )

@@ -1,0 +1,27 @@
+.chart-grid {
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 0;
+    grid-row-gap: 0;
+}
+
+.chart-group {
+    grid-area: 1 / 1 / 2 / 2;
+    position: relative;
+}
+
+.chart-container {
+    min-height: 500px;
+    max-height: 800px;
+    height: 100vh;
+}
+
+.chart-legend {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
+    max-width: 100%;
+    z-index: 999;
+}

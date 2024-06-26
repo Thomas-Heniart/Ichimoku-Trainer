@@ -55,8 +55,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
                 vertLines: { color: '#444' },
                 horzLines: { color: '#444' },
             },
-            width: chartContainerRef.current.clientWidth,
-            height: 750,
+            autoSize: true,
             crosshair: {
                 mode: CrosshairMode.Normal,
                 vertLine: {
@@ -216,7 +215,7 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
         const handleResize = () => {
             if (chartContainerRef.current) {
                 chart.applyOptions({
-                    width: chartContainerRef.current.clientWidth,
+                    autoSize: true,
                 })
             }
         }
@@ -231,11 +230,10 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
     }, [data, onCrosshairMove])
 
     return (
-        <>
-            <div style={{ height: '25px', textAlign: 'center', alignContent: 'center' }}>
-                {currentCandle && JSON.stringify(currentCandle)}
+        <div className={'chart-group'}>
+            <div className={'chart-container'} ref={chartContainerRef}>
+                <div className={'chart-legend'}>{currentCandle && JSON.stringify(currentCandle)}</div>
             </div>
-            <div ref={chartContainerRef} />
-        </>
+        </div>
     )
 }
