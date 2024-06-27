@@ -221,7 +221,6 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
         }
 
         window.addEventListener('resize', handleResize)
-        chartContainerRef.current.scrollIntoView()
         return () => {
             chart.unsubscribeCrosshairMove(onCrosshairMove)
             window.removeEventListener('resize', handleResize)
