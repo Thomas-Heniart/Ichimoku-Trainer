@@ -43,6 +43,7 @@ describe('Retrieve indicators', () => {
         await store.dispatch(retrieveAlarmIndicators())
 
         expect(store.getState().training.indicators).toEqual(null)
+        expect(store.getState().training.workingUnit).toEqual(null)
     })
 })
 

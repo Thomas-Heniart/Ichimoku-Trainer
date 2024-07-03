@@ -1,4 +1,4 @@
-import { IchimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
+import { ichimokuDrawVM } from '../view-model-generators/ichimoku-draw/ichimoku-draw-vm.selector.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
     AutoscaleInfo,
@@ -13,11 +13,23 @@ import {
     Time,
     UTCTimestamp,
 } from 'lightweight-charts'
-import { IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
+import { IchimokuCloudData, IchimokuCloudSeries } from '../../../../../ichimoku-cloud-plugin/series.ts'
+import { useSelector } from 'react-redux'
 
-type CandleVM = null | { time: Date; open: number; close: number; low: number; high: number }
+type CandleVM = null | {
+    time: Date
+    open: number
+    close: number
+    low: number
+    high: number
+    ssa: number | null
+    ssb: number | null
+    cloudTime: Date | null
+}
 
-export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
+export const IchimokuChart = () => {
+    const data = useSelector(ichimokuDrawVM)
+
     const chartContainerRef = useRef<HTMLDivElement | null>(null)
     const candlesticksRef = useRef<ISeriesApi<'Candlestick'>>()
     const tenkanRef = useRef<ISeriesApi<'Line'>>()
@@ -32,14 +44,18 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
     const onCrosshairMove = useCallback<MouseEventHandler<Time>>((param) => {
         if (!candlesticksRef.current) return
         if (!param || !param.seriesData || param.seriesData.size === 0) return setCurrentCandle(null)
-        const data = param.seriesData.get(candlesticksRef.current) as BarData
-        if (!data) return
+        const candleData = param.seriesData.get(candlesticksRef.current) as BarData
+        if (!candleData) return
+        const cloudData = param.seriesData.get(cloudRef.current!) as IchimokuCloudData
         setCurrentCandle({
-            time: new Date(data.time as UTCTimestamp),
-            open: data.open,
-            close: data.close,
-            low: data.low,
-            high: data.high,
+            time: new Date((candleData.time as UTCTimestamp) * 1000),
+            open: candleData.open,
+            close: candleData.close,
+            low: candleData.low,
+            high: candleData.high,
+            ssa: cloudData ? cloudData.ssa : null,
+            ssb: cloudData ? cloudData.ssb : null,
+            cloudTime: cloudData ? new Date((cloudData.time as UTCTimestamp) * 1000) : null,
         })
     }, [])
 
@@ -231,8 +247,33 @@ export const IchimokuChart = ({ data }: { data: IchimokuDrawVM }) => {
     return (
         <div className={'chart-group'}>
             <div className={'chart-container'} ref={chartContainerRef}>
-                <div className={'chart-legend'}>{currentCandle && JSON.stringify(currentCandle)}</div>
+                <Legend legend={currentCandle} />
             </div>
+        </div>
+    )
+}
+
+const Legend = ({ legend }: { legend: CandleVM }) => {
+    if (!legend) return <></>
+    return (
+        <div className={'chart-legend'}>
+            <p>
+                <span>
+                    Open time: <strong>{legend.time.toLocaleString()}</strong>
+                </span>
+                <span>
+                    Open: <strong>{legend.open}</strong>
+                </span>
+                <span>
+                    High: <strong>{legend.high}</strong>
+                </span>
+                <span>
+                    Low: <strong>{legend.low}</strong>
+                </span>
+                <span>
+                    Close: <strong>{legend.close}</strong>
+                </span>
+            </p>
         </div>
     )
 }

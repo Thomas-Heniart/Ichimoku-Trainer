@@ -23,7 +23,7 @@ describe('Change working unit', () => {
 
         sut.launchingNewTraining()
 
-        expect(sut.workingUnit).toEqual<WorkingUnit>('horizon')
+        expect(sut.workingUnit).toEqual(null)
     })
 })
 

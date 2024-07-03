@@ -1,8 +1,9 @@
 import { initReduxStore, ReduxStore } from '../../../../../../../../common/store/reduxStore.ts'
 import { ALARM_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
-import { Indicators, WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
+import { Indicators, WorkingUnit, WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
 import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
 import { retrieveAlarmIndicators } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
+import { changeWorkingUnit } from '../../../../../../hexagon/use-cases/change-working-unit/change-working-unit.ts'
 
 describe('Ichimoku draw view model generators', () => {
     let store: ReduxStore
@@ -12,13 +13,13 @@ describe('Ichimoku draw view model generators', () => {
     })
 
     it('does not have drawing data initially', () => {
-        expect(ichimokuDrawVM()(store.getState())).toEqual(null)
+        expect(ichimokuDrawVM(store.getState())).toEqual(null)
     })
 
     it('draws the horizon working unit by default', () => {
         onIndicatorsRetrieved(ALARM_INDICATORS)
 
-        expect(ichimokuDrawVM()(store.getState())).toEqual({
+        expect(ichimokuDrawVM(store.getState())).toEqual({
             ...ALARM_INDICATORS['horizon'],
             previousKijun: [],
             previousSsa: [],
@@ -39,8 +40,9 @@ describe('Ichimoku draw view model generators', () => {
             graphical: graphicalData,
             intervention: interventionData,
         })
+        onWorkingUnitSelected('graphical')
 
-        expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
+        expect(ichimokuDrawVM(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
             previousKijun: horizonData.kijun,
             previousSsa: horizonData.ssa,
@@ -61,8 +63,9 @@ describe('Ichimoku draw view model generators', () => {
             graphical: graphicalData,
             intervention: interventionData,
         })
+        onWorkingUnitSelected('graphical')
 
-        expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
+        expect(ichimokuDrawVM(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
             previousKijun: [0, 0],
             previousSsa: [0, 0],
@@ -83,8 +86,9 @@ describe('Ichimoku draw view model generators', () => {
             graphical: graphicalData,
             intervention: interventionData,
         })
+        onWorkingUnitSelected('graphical')
 
-        expect(ichimokuDrawVM('graphical')(store.getState())).toEqual({
+        expect(ichimokuDrawVM(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
             previousKijun: [0, 0, 1, 1],
             previousSsa: [0, 0, 1, 1],
@@ -105,8 +109,9 @@ describe('Ichimoku draw view model generators', () => {
             graphical: graphicalData,
             intervention: interventionData,
         })
+        onWorkingUnitSelected('intervention')
 
-        expect(ichimokuDrawVM('intervention')(store.getState())).toEqual({
+        expect(ichimokuDrawVM(store.getState())).toEqual({
             ...arbitraryIndicatorsBasedOnTimestampsIndex(graphicalTimestamps),
             previousKijun: graphicalData.kijun,
             previousSsa: graphicalData.ssa,
@@ -120,6 +125,15 @@ describe('Ichimoku draw view model generators', () => {
             type: retrieveAlarmIndicators.fulfilled.type,
             payload: {
                 indicators,
+            },
+        })
+    }
+
+    const onWorkingUnitSelected = (workingUnit: WorkingUnit) => {
+        store.dispatch({
+            type: changeWorkingUnit.fulfilled.type,
+            payload: {
+                workingUnit,
             },
         })
     }

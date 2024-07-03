@@ -5,6 +5,7 @@ import { isEqual } from 'date-fns'
 import { launchTraining } from '../launch-training.ts'
 import { TradingAlarm } from '../../../models/trading-alarm.ts'
 import { TradingAlarmGateway } from '../../../ports/gateways/trading-alarm.gateway.ts'
+import { arbitraryAlarm } from '../../change-working-unit/__test__/change-working-unit.spec.ts'
 
 describe('Launch training', () => {
     let sut: SUT
@@ -36,6 +37,14 @@ describe('Launch training', () => {
             date: '2023-06-17T01:00:00.000Z',
         })
     })
+
+    it('resets the alarm when launching a new training', () => {
+        sut.givenLaunchedTraining()
+
+        sut.launchingNewTraining()
+
+        expect(sut.tradingAlarm).toEqual(null)
+    })
 })
 
 class SUT {
@@ -60,8 +69,23 @@ class SUT {
         this._randomDate = randomDate
     }
 
+    givenLaunchedTraining() {
+        this._store.dispatch({
+            type: launchTraining.fulfilled.type,
+            payload: {
+                alarm: arbitraryAlarm(),
+            },
+        })
+    }
+
     async launchTraining() {
         await this._store.dispatch(launchTraining())
+    }
+
+    launchingNewTraining() {
+        this._store.dispatch({
+            type: launchTraining.pending.type,
+        })
     }
 
     get tradingAlarm() {

@@ -1,26 +1,25 @@
 import { WorkingUnit, WorkingUnitData } from '../../../../../hexagon/models/indicators.model.ts'
 import { AppState } from '../../../../../../../common/store/reduxStore.ts'
 
-export const ichimokuDrawVM =
-    (workingUnit: WorkingUnit = 'horizon') =>
-    (state: AppState): IchimokuDrawVM => {
-        if (!state.training.indicators) return null
-        const workingUnitData = state.training.indicators[workingUnit]
-        const longerWorkingUnit = longerWorkingUnits[workingUnit]
-        if (!longerWorkingUnit)
-            return {
-                ...workingUnitData,
-                previousKijun: [],
-                previousSsa: [],
-                previousSsb: [],
-                previousLagging: [],
-            }
-        const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
+export const ichimokuDrawVM = (state: AppState): IchimokuDrawVM => {
+    if (!state.training.indicators || !state.training.workingUnit) return null
+    const workingUnit = state.training.workingUnit
+    const workingUnitData = state.training.indicators[workingUnit]
+    const longerWorkingUnit = longerWorkingUnits[workingUnit]
+    if (!longerWorkingUnit)
         return {
             ...workingUnitData,
-            ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),
+            previousKijun: [],
+            previousSsa: [],
+            previousSsb: [],
+            previousLagging: [],
         }
+    const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
+    return {
+        ...workingUnitData,
+        ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),
     }
+}
 
 const longerWorkingUnits: Partial<Record<WorkingUnit, WorkingUnit>> = {
     graphical: 'horizon',

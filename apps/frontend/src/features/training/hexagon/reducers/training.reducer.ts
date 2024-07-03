@@ -11,11 +11,13 @@ type State = {
     alarm: TradingAlarm | null
     indicators: Indicators | null
     workingUnit: WorkingUnit | null
+    isLoading: boolean
 }
 const initialState = (): State => ({
     alarm: null,
     indicators: null,
     workingUnit: null,
+    isLoading: false,
 })
 
 export const trainingSlice = createSlice({
@@ -24,13 +26,17 @@ export const trainingSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder.addCase(launchTraining.pending, (state) => {
-            state.workingUnit = 'horizon'
+            state.workingUnit = null
+            state.alarm = null
+            state.isLoading = true
         })
         builder.addCase(launchTraining.fulfilled, (state, { payload }) => {
             state.alarm = payload.alarm
         })
         builder.addCase(retrieveAlarmIndicators.fulfilled, (state, { payload }) => {
             state.indicators = payload.indicators
+            state.workingUnit = payload.indicators ? 'horizon' : null
+            state.isLoading = false
         })
         builder.addCase(changeWorkingUnit.fulfilled, (state, { payload }) => {
             state.workingUnit = payload.workingUnit
