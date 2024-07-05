@@ -58,18 +58,18 @@ export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
         for (let i = 0; i < 26; i++) timestamps.push(addPeriods[interval](timestamps[timestamps.length - 1], 1))
         const { tenkan, kijun, ssa, ssb, laggingSpan } = ichimokuCloud(highs, lows, closings)
         return {
-            timestamps: timestamps.map((t) => t.valueOf()).slice(periodsRequiredToHaveACompleteCloud - 1),
+            timestamps: timestamps.map((t) => t.valueOf()),
             candles: {
-                open: openings.slice(periodsRequiredToHaveACompleteCloud - 1),
-                close: closings.slice(periodsRequiredToHaveACompleteCloud - 1),
-                high: highs.slice(periodsRequiredToHaveACompleteCloud - 1),
-                low: lows.slice(periodsRequiredToHaveACompleteCloud - 1),
+                open: openings,
+                close: closings,
+                high: highs,
+                low: lows,
             },
-            tenkan: tenkan.slice(periodsRequiredToHaveACompleteCloud - 1),
-            kijun: kijun.slice(periodsRequiredToHaveACompleteCloud - 1),
-            ssa: ssa.slice(periodsRequiredToHaveACompleteCloud - 1),
-            ssb: ssb.slice(periodsRequiredToHaveACompleteCloud - 1),
-            lagging: laggingSpan.slice(periodsRequiredToHaveACompleteCloud - 1),
+            tenkan: tenkan,
+            kijun: kijun,
+            ssa: ssa,
+            ssb: ssb,
+            lagging: laggingSpan,
         }
     }
 }

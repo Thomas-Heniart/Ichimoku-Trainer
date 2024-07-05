@@ -93,7 +93,7 @@ export const ALARM_INDICATORS: Indicators = {
         lagging: [12],
     },
     intervention: {
-        timestamps: [13],
+        timestamps: [13, 14],
         candles: {
             open: [1],
             close: [2],
@@ -102,8 +102,8 @@ export const ALARM_INDICATORS: Indicators = {
         },
         tenkan: [14],
         kijun: [15],
-        ssa: [16],
-        ssb: [17],
+        ssa: [16, 17],
+        ssb: [17, 18],
         lagging: [18],
     },
 }
