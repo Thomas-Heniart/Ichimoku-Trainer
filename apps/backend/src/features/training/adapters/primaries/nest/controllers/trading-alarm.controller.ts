@@ -31,4 +31,13 @@ export class TradingAlarmController {
             chartData,
         }
     }
+
+    @Get('/next-intervention-candle')
+    async retrieveNexInterventionCandle(@Query('after') dateInMs: number) {
+        const date = new UTCDate(fromUnixTime(dateInMs / 1000))
+        const candle = await this._ichimokuChartDatasource.candleAfter({ date })
+        return {
+            candle,
+        }
+    }
 }

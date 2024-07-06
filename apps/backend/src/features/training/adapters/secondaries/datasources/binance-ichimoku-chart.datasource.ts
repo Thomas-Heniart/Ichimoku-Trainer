@@ -4,6 +4,7 @@ import { IchimokuChartDatasource } from '../../../hexagon/ports/ichimoku-chart.d
 import { Interval, Spot } from '@binance/connector-typescript'
 import { addDays, addHours, addMinutes, startOfDay, startOfHour } from 'date-fns'
 import { ichimokuCloud } from 'indicatorts'
+import { Candle } from '../../../hexagon/models/candle'
 
 const symbol = 'BTCUSDT'
 const intervals: Record<WorkingUnit, Interval> = {
@@ -24,6 +25,19 @@ export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
             this.ichimokuIndicators({ date, interval: intervals.intervention }),
         ])
         return { horizon, graphical, intervention }
+    }
+
+    async candleAfter({ date }: { date: UTCDate }): Promise<Candle> {
+        const [kline] = await this._client.klineCandlestickData(symbol, Interval['15m'], {
+            startTime: date.valueOf() + 1,
+            limit: 1,
+        })
+        return {
+            open: parseFloat(kline[1] as string),
+            high: parseFloat(kline[2] as string),
+            low: parseFloat(kline[3] as string),
+            close: parseFloat(kline[4] as string),
+        }
     }
 
     private async ichimokuIndicators({

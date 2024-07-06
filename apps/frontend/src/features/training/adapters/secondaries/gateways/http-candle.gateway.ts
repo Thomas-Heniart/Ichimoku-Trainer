@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export class HttpCandleGateway implements CandleGateway {
     async candleAfter(lastClosedCandleTimestamp: number): Promise<Candle> {
-        const response = await axios.get<{ candle: Candle }>('/api/next-candle', {
+        const response = await axios.get<{ candle: Candle }>('/api/trading-alarms/next-intervention-candle', {
             params: { after: lastClosedCandleTimestamp },
         })
         return response.data.candle
