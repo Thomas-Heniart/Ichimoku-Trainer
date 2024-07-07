@@ -7,6 +7,7 @@ import {
     ColorType,
     createChart,
     CrosshairMode,
+    IChartApi,
     ISeriesApi,
     LineStyle,
     MouseEventHandler,
@@ -41,6 +42,8 @@ export const IchimokuChart = () => {
 
     const [currentCandle, setCurrentCandle] = useState<CandleVM>(null)
 
+    const [currentChart, setCurrentChart] = useState<IChartApi | null>(null)
+
     const onCrosshairMove = useCallback<MouseEventHandler<Time>>((param) => {
         if (!candlesticksRef.current) return
         if (!param || !param.seriesData || param.seriesData.size === 0) return setCurrentCandle(null)
@@ -60,7 +63,7 @@ export const IchimokuChart = () => {
     }, [])
 
     useEffect(() => {
-        if (!chartContainerRef.current || !data) return
+        if (!chartContainerRef.current) return
         const chart = createChart(chartContainerRef.current, {})
         chart.applyOptions({
             layout: {
@@ -99,17 +102,7 @@ export const IchimokuChart = () => {
             timeVisible: true,
             borderColor: '#71649C',
         })
-
-        candlesticksRef.current = chart.addCandlestickSeries()
-        const candleStickData = data.candles.close.map<CandlestickData>((close, i) => ({
-            time: (data.timestamps[i] / 1000) as UTCTimestamp,
-            open: data.candles.open[i],
-            high: data.candles.high[i],
-            low: data.candles.low[i],
-            close,
-        }))
-        candlesticksRef.current.setData(candleStickData)
-        candlesticksRef.current.applyOptions({
+        candlesticksRef.current = chart.addCandlestickSeries({
             wickUpColor: 'rgb(70,217,54)',
             upColor: 'rgb(70,217,54)',
             wickDownColor: 'rgb(225, 50, 85)',
@@ -117,115 +110,21 @@ export const IchimokuChart = () => {
             borderVisible: false,
             priceLineVisible: false,
         })
-
         tenkanRef.current = chart.addLineSeries({
             lineWidth: 1,
             color: 'rgb(217,195,54)',
             priceLineVisible: false,
         })
-        tenkanRef.current.setData(
-            data.tenkan.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
         kijunRef.current = chart.addLineSeries({ lineWidth: 1, color: 'rgb(54, 116, 217)', priceLineVisible: false })
-        kijunRef.current.setData(
-            data.kijun.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
         cloudRef.current = chart.addCustomSeries(new IchimokuCloudSeries())
-        cloudRef.current.setData(
-            data.ssb.reduce(
-                (acc, ssb, i) => {
-                    if (!ssb) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
-                },
-                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
-            ),
-        )
-        const allCloudValues = [...data.ssb, ...data.ssa].filter((v) => v > 0)
-        const minValue = Math.min(...allCloudValues)
-        const maxValue = Math.max(...allCloudValues)
-        cloudRef.current.applyOptions({
-            autoscaleInfoProvider: (): AutoscaleInfo => {
-                return {
-                    priceRange: {
-                        minValue,
-                        maxValue,
-                    },
-                }
-            },
-        })
-
         laggingSpanRef.current = chart.addLineSeries({
             lineWidth: 1,
             color: '#fff',
             priceLineVisible: false,
         })
-        laggingSpanRef.current.setData(
-            data.lagging.reduce(
-                (acc, value, i) => {
-                    if (!value) return acc
-                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                },
-                [] as Array<{ time: UTCTimestamp; value: number }>,
-            ),
-        )
-
-        if (data.previousKijun.length) {
-            previousKijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#02b72b', priceLineVisible: false })
-            previousKijunRef.current.setData(
-                data.previousKijun.reduce(
-                    (acc, value, i) => {
-                        if (!value) return acc
-                        return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
-                    },
-                    [] as Array<{ time: UTCTimestamp; value: number }>,
-                ),
-            )
-        }
-
-        if (data.previousSsb.length) {
-            previousCloudRef.current = chart.addCustomSeries(
-                new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' }),
-            )
-            previousCloudRef.current.setData(
-                data.previousSsb.reduce(
-                    (acc, ssb, i) => {
-                        if (!ssb) return acc
-                        return [
-                            ...acc,
-                            { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.previousSsa[i], ssb },
-                        ]
-                    },
-                    [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
-                ),
-            )
-            const allValues = [...data.previousSsb, ...data.previousSsb].filter((v) => v > 0)
-            const minValue = Math.min(...allValues)
-            const maxValue = Math.max(...allValues)
-            previousCloudRef.current.applyOptions({
-                autoscaleInfoProvider: (): AutoscaleInfo => {
-                    return {
-                        priceRange: {
-                            minValue,
-                            maxValue,
-                        },
-                    }
-                },
-            })
-        }
+        previousKijunRef.current = chart.addLineSeries({ lineWidth: 1, color: '#02b72b', priceLineVisible: false })
+        previousCloudRef.current = chart.addCustomSeries(new IchimokuCloudSeries({ cloudColor: 'rgba(2,190,45, 0.5)' }))
+        setCurrentChart(chart)
 
         chart.subscribeCrosshairMove(onCrosshairMove)
         const handleResize = () => {
@@ -238,11 +137,116 @@ export const IchimokuChart = () => {
 
         window.addEventListener('resize', handleResize)
         return () => {
+            setCurrentChart(null)
             chart.unsubscribeCrosshairMove(onCrosshairMove)
             window.removeEventListener('resize', handleResize)
             chart.remove()
         }
-    }, [data, onCrosshairMove])
+    }, [onCrosshairMove])
+
+    useEffect(() => {
+        if (!currentChart || !data) return
+        candlesticksRef.current!.setData(
+            data.candles.close.map<CandlestickData>((close, i) => ({
+                time: (data.timestamps[i] / 1000) as UTCTimestamp,
+                open: data.candles.open[i],
+                high: data.candles.high[i],
+                low: data.candles.low[i],
+                close,
+            })),
+        )
+        tenkanRef.current!.setData(
+            data.tenkan.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        kijunRef.current!.setData(
+            data.kijun.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        cloudRef.current!.setData(
+            data.ssb.reduce(
+                (acc, ssb, i) => {
+                    if (!ssb) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.ssa[i], ssb }]
+                },
+                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+            ),
+        )
+        {
+            const allCloudValues = [...data.ssb, ...data.ssa].filter((v) => v > 0)
+            const minValue = Math.min(...allCloudValues)
+            const maxValue = Math.max(...allCloudValues)
+            cloudRef.current!.applyOptions({
+                autoscaleInfoProvider: (): AutoscaleInfo => {
+                    return {
+                        priceRange: {
+                            minValue,
+                            maxValue,
+                        },
+                    }
+                },
+            })
+        }
+
+        laggingSpanRef.current!.setData(
+            data.lagging.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+
+        previousKijunRef.current!.setData(
+            data.previousKijun.reduce(
+                (acc, value, i) => {
+                    if (!value) return acc
+                    return [...acc, { time: (data.timestamps[i] / 1000) as UTCTimestamp, value }]
+                },
+                [] as Array<{ time: UTCTimestamp; value: number }>,
+            ),
+        )
+        previousCloudRef.current!.setData(
+            data.previousSsb.reduce(
+                (acc, ssb, i) => {
+                    if (!ssb) return acc
+                    return [
+                        ...acc,
+                        { time: (data.timestamps[i] / 1000) as UTCTimestamp, ssa: data.previousSsa[i], ssb },
+                    ]
+                },
+                [] as Array<{ time: UTCTimestamp; ssa: number; ssb: number }>,
+            ),
+        )
+        {
+            const allCloudValues = [...data.previousSsb, ...data.previousSsb].filter((v) => v > 0)
+            const minValue = Math.min(...allCloudValues)
+            const maxValue = Math.max(...allCloudValues)
+            previousCloudRef.current!.applyOptions({
+                autoscaleInfoProvider: (): AutoscaleInfo => {
+                    return {
+                        priceRange: {
+                            minValue,
+                            maxValue,
+                        },
+                    }
+                },
+            })
+        }
+    }, [currentChart, data])
 
     return (
         <div className={'chart-group'}>
