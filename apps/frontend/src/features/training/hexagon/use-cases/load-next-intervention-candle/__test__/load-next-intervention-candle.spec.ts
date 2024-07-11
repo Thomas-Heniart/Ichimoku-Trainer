@@ -1,6 +1,6 @@
 import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
 import { ALARM_INDICATORS } from '../../retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
-import { Indicators } from '../../../models/indicators.model.ts'
+import { Indicators, WorkingUnit } from '../../../models/indicators.model.ts'
 import { retrieveAlarmIndicators } from '../../retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { loadNextInterventionCandle } from '../load-next-intervention-candle.ts'
 import { IchimokuCloudResult } from 'indicatorts'
@@ -9,6 +9,7 @@ import { CandleGateway } from '../../../ports/gateways/candle.gateway.ts'
 import { Candle } from '../../../models/candle.model.ts'
 import { CalculateIchimokuIndicatorsCommand } from '../../../models/services/calculate-ichimoku-indicators.service.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../../../constants.ts'
+import { changeWorkingUnit } from '../../change-working-unit/change-working-unit.ts'
 
 describe('Load next intervention candle', () => {
     let sut: SUT
@@ -87,6 +88,14 @@ describe('Load next intervention candle', () => {
             assertOtherChartsRemainedTheSame()
         })
 
+        it('should focus on intervention working unit', async () => {
+            sut.setSelectedWorkingUnit('graphical')
+
+            await sut.loadNextInterventionCandle()
+
+            expect(sut.workingUnit).toEqual('intervention')
+        })
+
         const assertInterventionLastTimestampIsFifteenMinutesAfterTheLastOne = () => {
             const expectedNewTimestamp =
                 ALARM_INDICATORS.intervention.timestamps[ALARM_INDICATORS.intervention.timestamps.length - 1] +
@@ -163,12 +172,23 @@ class SUT {
         }
     }
 
+    setSelectedWorkingUnit(workingUnit: WorkingUnit) {
+        this._store.dispatch({
+            type: changeWorkingUnit.fulfilled.type,
+            payload: { workingUnit },
+        })
+    }
+
     async loadNextInterventionCandle() {
         await this._store.dispatch(loadNextInterventionCandle())
     }
 
     get indicators() {
         return this._store.getState().training.indicators
+    }
+
+    get workingUnit() {
+        return this._store.getState().training.workingUnit
     }
 }
 

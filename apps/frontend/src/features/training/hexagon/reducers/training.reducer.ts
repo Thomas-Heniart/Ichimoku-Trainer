@@ -59,6 +59,7 @@ export const trainingSlice = createSlice({
             state.indicators!.intervention.ssa = payload.ichimokuIndicators.ssa
             state.indicators!.intervention.ssb = payload.ichimokuIndicators.ssb
             state.indicators!.intervention.lagging = payload.ichimokuIndicators.laggingSpan
+            state.workingUnit = 'intervention'
         })
     },
 })
