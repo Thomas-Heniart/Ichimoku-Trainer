@@ -3,32 +3,26 @@ import { CurrentAlarm } from './features/training/adapters/primaries/react/compo
 import './App.css'
 import { SelectWorkingUnit } from './features/training/adapters/primaries/react/components/select-working-unit.tsx'
 import { IchimokuChart } from './features/training/adapters/primaries/react/components/ichimoku-chart.tsx'
-import { MouseEventHandler } from 'react'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from './common/store/reduxStore.ts'
-import { loadNextInterventionCandle } from './features/training/hexagon/use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
+import { LoadNextInterventionCandleButton } from './features/training/adapters/primaries/react/components/load-next-intervention-candle-button.tsx'
+import { useSelector } from 'react-redux'
+import { showChartVM } from './features/training/adapters/primaries/react/view-model-generators/show-chart.vm.ts'
 
 export default function App() {
-    const dispatch = useDispatch<AppDispatch>()
-
-    const onNextInterventionCandleClick: MouseEventHandler<HTMLButtonElement> = (e) => {
-        e.preventDefault()
-        dispatch(loadNextInterventionCandle())
-    }
+    const showChart = useSelector(showChartVM)
 
     return (
         <div className={'app'}>
             <StartTrainingButton />
-            <div className={'chart-grid'}>
-                <IchimokuChart />
-                <div>
-                    <CurrentAlarm />
-                    <SelectWorkingUnit />
-                    <button type={'button'} onClick={onNextInterventionCandleClick}>
-                        Next intervention candle
-                    </button>
+            {showChart && (
+                <div className={'chart-grid'}>
+                    <IchimokuChart />
+                    <div>
+                        <CurrentAlarm />
+                        <SelectWorkingUnit />
+                        <LoadNextInterventionCandleButton />
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

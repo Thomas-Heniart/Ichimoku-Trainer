@@ -32,6 +32,7 @@ export const trainingSlice = createSlice({
         builder.addCase(launchTraining.pending, (state) => {
             state.workingUnit = null
             state.alarm = null
+            state.indicators = null
             state.isLoading = true
         })
         builder.addCase(launchTraining.fulfilled, (state, { payload }) => {

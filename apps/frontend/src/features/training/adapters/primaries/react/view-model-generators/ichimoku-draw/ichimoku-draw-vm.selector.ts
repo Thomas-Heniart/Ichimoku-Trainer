@@ -1,25 +1,62 @@
 import { WorkingUnit, WorkingUnitData } from '../../../../../hexagon/models/indicators.model.ts'
 import { AppState } from '../../../../../../../common/store/reduxStore.ts'
+import { createSelector } from '@reduxjs/toolkit'
 
-export const ichimokuDrawVM = (state: AppState): IchimokuDrawVM => {
-    if (!state.training.indicators || !state.training.workingUnit) return null
-    const workingUnit = state.training.workingUnit
-    const workingUnitData = state.training.indicators[workingUnit]
-    const longerWorkingUnit = longerWorkingUnits[workingUnit]
-    if (!longerWorkingUnit)
+const workingUnitVM = (state: AppState) => state.training.workingUnit
+const longerWorkingUnitWorkingUnitVM = (state: AppState) => {
+    if (!state.training.workingUnit) return null
+    return longerWorkingUnits[state.training.workingUnit] || null
+}
+const indicatorsVM = (state: AppState) => state.training.indicators
+
+const workingUnitDataVM = createSelector(
+    [workingUnitVM, indicatorsVM],
+    (workingUnit, indicators): WorkingUnitData | null => {
+        if (!workingUnit || !indicators) return null
+        return indicators[workingUnit]
+    },
+)
+
+const zoomedInWorkingUnitDataVM = createSelector(
+    [workingUnitVM, longerWorkingUnitWorkingUnitVM, indicatorsVM],
+    (unit, longerUnit, indicators): ZoomedWorkingUnitDataVM => {
+        if (!unit || !longerUnit || !indicators)
+            return { previousKijun: [], previousSsa: [], previousSsb: [], previousLagging: [] }
+        const zoomedWorkingUnitData = indicators[longerUnit]
+        return zoomIn(zoomedWorkingUnitData, indicators[unit].timestamps)
+    },
+)
+
+export const ichimokuDrawVM = createSelector(
+    [workingUnitDataVM, zoomedInWorkingUnitDataVM],
+    (workingUnitData, zoomedInWorkingUnitData): IchimokuDrawVM => {
+        if (!workingUnitData) return null
         return {
             ...workingUnitData,
-            previousKijun: [],
-            previousSsa: [],
-            previousSsb: [],
-            previousLagging: [],
+            ...zoomedInWorkingUnitData,
         }
-    const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
-    return {
-        ...workingUnitData,
-        ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),
-    }
-}
+    },
+)
+
+// export const ichimokuDrawVM = (state: AppState): IchimokuDrawVM => {
+//     if (!state.training.indicators || !state.training.workingUnit) return null
+//     const workingUnit = state.training.workingUnit
+//     const workingUnitData = state.training.indicators[workingUnit]
+//     const longerWorkingUnit = longerWorkingUnits[workingUnit]
+//     if (!longerWorkingUnit)
+//         return {
+//             ...workingUnitData,
+//             previousKijun: [],
+//             previousSsa: [],
+//             previousSsb: [],
+//             previousLagging: [],
+//         }
+//     const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
+//     return {
+//         ...workingUnitData,
+//         ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),
+//     }
+// }
 
 const longerWorkingUnits: Partial<Record<WorkingUnit, WorkingUnit>> = {
     graphical: 'horizon',
