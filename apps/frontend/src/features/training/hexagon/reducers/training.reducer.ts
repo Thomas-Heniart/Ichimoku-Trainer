@@ -10,6 +10,7 @@ import { changeWorkingUnit } from '../use-cases/change-working-unit/change-worki
 import { loadNextInterventionCandle } from '../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 
 import { FIFTEEN_MINUTES_IN_MS } from '../../constants.ts'
+import { ichimokuCloud } from 'indicatorts'
 
 type State = {
     alarm: TradingAlarm | null
@@ -54,11 +55,16 @@ export const trainingSlice = createSlice({
             state.indicators!.intervention.candles.high.push(payload.candle.high)
             state.indicators!.intervention.candles.low.push(payload.candle.low)
             state.indicators!.intervention.candles.close.push(payload.candle.close)
-            state.indicators!.intervention.tenkan = payload.ichimokuIndicators.tenkan
-            state.indicators!.intervention.kijun = payload.ichimokuIndicators.kijun
-            state.indicators!.intervention.ssa = payload.ichimokuIndicators.ssa
-            state.indicators!.intervention.ssb = payload.ichimokuIndicators.ssb
-            state.indicators!.intervention.lagging = payload.ichimokuIndicators.laggingSpan
+            const { tenkan, kijun, ssa, ssb, laggingSpan } = ichimokuCloud(
+                state.indicators!.intervention.candles.high,
+                state.indicators!.intervention.candles.low,
+                state.indicators!.intervention.candles.close,
+            )
+            state.indicators!.intervention.tenkan = tenkan
+            state.indicators!.intervention.kijun = kijun
+            state.indicators!.intervention.ssa = ssa
+            state.indicators!.intervention.ssb = ssb
+            state.indicators!.intervention.lagging = laggingSpan
             state.workingUnit = 'intervention'
         })
     },
