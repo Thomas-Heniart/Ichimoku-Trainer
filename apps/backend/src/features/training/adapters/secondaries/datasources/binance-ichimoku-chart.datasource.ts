@@ -49,9 +49,12 @@ export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
         interval: Interval
     }): Promise<WorkingUnitData> {
         const startDate = addPeriods[interval](date, -periodsRequiredToHaveACompleteCloud * 3)
+        let endDate = date
+        if (interval === Interval['15m']) endDate = addPeriods[interval](date, 3)
+        if (interval === Interval['1d']) endDate = addPeriods[interval](date, -1)
         const binanceKlines = await this._client.klineCandlestickData(symbol, interval, {
             startTime: startDate.valueOf(),
-            endTime: date.valueOf(),
+            endTime: endDate.valueOf(),
         })
 
         const { timestamps, openings, closings, highs, lows } = binanceKlines.reduce(
