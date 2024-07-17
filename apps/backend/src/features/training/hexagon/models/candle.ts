@@ -1,1 +1,1 @@
-export type Candle = { open: number; close: number; high: number; low: number }
+export type Candle = { openTime: number; open: number; close: number; high: number; low: number }

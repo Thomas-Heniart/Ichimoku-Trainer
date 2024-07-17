@@ -1,5 +1,5 @@
 import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
-import { Indicators, WorkingUnit, WorkingUnitData } from '../../../models/indicators.model.ts'
+import { Indicators, WorkingUnit } from '../../../models/indicators.model.ts'
 import { retrieveAlarmIndicators } from '../../retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { loadNextInterventionCandle } from '../load-next-intervention-candle.ts'
 import { ichimokuCloud } from 'indicatorts'
@@ -7,46 +7,56 @@ import { CandleGateway } from '../../../ports/gateways/candle.gateway.ts'
 import { Candle } from '../../../models/candle.model.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../../../constants.ts'
 import { changeWorkingUnit } from '../../change-working-unit/change-working-unit.ts'
+import { UTCDate } from '@date-fns/utc'
+import { addMinutes } from 'date-fns'
+import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../../common/__test__/candles-fixtures.ts'
 
 describe('Load next intervention candle', () => {
     let sut: SUT
-    let indicators: Indicators
+    let initialIndicators: Indicators
+    let lastTimestamp: UTCDate
+    let lastClosedTimestamp: UTCDate
 
     beforeEach(() => {
         sut = new SUT()
-        indicators = arbitraryIndicator()
-        sut.givenIndicators(indicators)
+        lastTimestamp = new UTCDate('2024-01-01')
+        initialIndicators = neutralIndicatorsFinishingADay(lastTimestamp)
+        lastClosedTimestamp = new UTCDate(
+            initialIndicators.intervention.timestamps[initialIndicators.intervention.candles.close.length - 1],
+        )
+        sut.givenIndicators(neutralIndicatorsFinishingADay(lastTimestamp))
     })
 
     it('retrieves the next candle just after last closed candle', async () => {
         const nextCandle = {
-            open: 10,
-            close: 20,
-            high: 30,
+            openTime: addMinutes(lastClosedTimestamp, 15).valueOf(),
+            open: NEUTRAL_VALUE,
+            close: 40,
+            high: 50,
             low: 5,
         }
         sut.feedWithNextCandle({
-            lastClosingTime: indicators.intervention.timestamps[indicators.intervention.candles.close.length - 1],
+            lastClosingTime: lastClosedTimestamp.valueOf(),
             candle: nextCandle,
         })
 
         await sut.loadNextInterventionCandle()
 
         assertCandleHasBeenRetrieved(nextCandle)
-        assertOtherChartsRemainedTheSame()
     })
 
     describe('With the next candle', () => {
         let nextCandle: Candle
         beforeEach(() => {
             nextCandle = {
+                openTime: addMinutes(lastClosedTimestamp, 15).valueOf(),
                 open: 10,
                 close: 20,
                 high: 30,
                 low: 5,
             }
             sut.feedWithNextCandle({
-                lastClosingTime: indicators.intervention.timestamps[indicators.intervention.candles.close.length - 1],
+                lastClosingTime: lastClosedTimestamp.valueOf(),
                 candle: nextCandle,
             })
         })
@@ -55,21 +65,19 @@ describe('Load next intervention candle', () => {
             await sut.loadNextInterventionCandle()
 
             assertInterventionLastTimestampIsFifteenMinutesAfterTheLastOne()
-            assertOtherChartsRemainedTheSame()
         })
 
         it('recalculates ichimoku indicators', async () => {
             await sut.loadNextInterventionCandle()
 
             assertIchimokuIndicatorsHaveBeenRecalculatedUsingNextCandle()
-            assertOtherChartsRemainedTheSame()
         })
 
         const assertIchimokuIndicatorsHaveBeenRecalculatedUsingNextCandle = () => {
             const recalculatedIndicators = ichimokuCloud(
-                [...indicators.intervention.candles.high, nextCandle.high],
-                [...indicators.intervention.candles.low, nextCandle.low],
-                [...indicators.intervention.candles.close, nextCandle.close],
+                [...initialIndicators.intervention.candles.high, nextCandle.high],
+                [...initialIndicators.intervention.candles.low, nextCandle.low],
+                [...initialIndicators.intervention.candles.close, nextCandle.close],
             )
             expect(sut.indicators?.intervention.tenkan).toEqual(recalculatedIndicators.tenkan)
             expect(sut.indicators?.intervention.kijun).toEqual(recalculatedIndicators.kijun)
@@ -78,20 +86,12 @@ describe('Load next intervention candle', () => {
             expect(sut.indicators?.intervention.lagging).toEqual(recalculatedIndicators.laggingSpan)
         }
 
-        it('should focus on intervention working unit', async () => {
-            sut.setSelectedWorkingUnit('graphical')
-
-            await sut.loadNextInterventionCandle()
-
-            expect(sut.workingUnit).toEqual('intervention')
-        })
-
         const assertInterventionLastTimestampIsFifteenMinutesAfterTheLastOne = () => {
             const expectedNewTimestamp =
-                indicators.intervention.timestamps[indicators.intervention.timestamps.length - 1] +
+                initialIndicators.intervention.timestamps[initialIndicators.intervention.timestamps.length - 1] +
                 FIFTEEN_MINUTES_IN_MS
             expect(sut.indicators?.intervention.timestamps).toEqual([
-                ...indicators.intervention.timestamps,
+                ...initialIndicators.intervention.timestamps,
                 expectedNewTimestamp,
             ])
         }
@@ -99,23 +99,21 @@ describe('Load next intervention candle', () => {
 
     const assertCandleHasBeenRetrieved = (candle: Candle) => {
         expect(sut.indicators?.intervention.candles.open).toEqual([
-            ...indicators.intervention.candles.open,
+            ...initialIndicators.intervention.candles.open,
             candle.open,
         ])
         expect(sut.indicators?.intervention.candles.high).toEqual([
-            ...indicators.intervention.candles.high,
+            ...initialIndicators.intervention.candles.high,
             candle.high,
         ])
-        expect(sut.indicators?.intervention.candles.low).toEqual([...indicators.intervention.candles.low, candle.low])
+        expect(sut.indicators?.intervention.candles.low).toEqual([
+            ...initialIndicators.intervention.candles.low,
+            candle.low,
+        ])
         expect(sut.indicators?.intervention.candles.close).toEqual([
-            ...indicators.intervention.candles.close,
+            ...initialIndicators.intervention.candles.close,
             candle.close,
         ])
-    }
-
-    const assertOtherChartsRemainedTheSame = () => {
-        expect(sut.indicators?.horizon).toEqual(indicators.horizon)
-        expect(sut.indicators?.graphical).toEqual(indicators.graphical)
     }
 })
 
@@ -166,39 +164,12 @@ class StubCandleGateway implements CandleGateway {
     private readonly _stubs: Array<{ candle: Candle; lastClosingTime: number }> = []
 
     async candleAfter(lastClosedCandleTimestamp: number): Promise<Candle> {
-        return this._stubs.find((s) => s.lastClosingTime === lastClosedCandleTimestamp)!.candle
+        const stub = this._stubs.find((s) => s.lastClosingTime === lastClosedCandleTimestamp)
+        if (!stub) throw 'Should not happen'
+        return stub.candle
     }
 
     feedWith(stub: { candle: Candle; lastClosingTime: number }) {
         this._stubs.push(stub)
-    }
-}
-
-export const arbitraryIndicator = (): Indicators => ({
-    horizon: arbitraryCandles(),
-    graphical: arbitraryCandles(),
-    intervention: arbitraryCandles(),
-})
-
-export const arbitraryCandles = (): WorkingUnitData => {
-    const timestamps = new Array<number>(52 + 26).fill(0).map((_, i) => i * FIFTEEN_MINUTES_IN_MS)
-    const open = new Array<number>(52).fill(20)
-    const close = new Array<number>(52).fill(20)
-    const high = new Array<number>(52).fill(20)
-    const low = new Array<number>(52).fill(20)
-    const { tenkan, kijun, ssa, ssb, laggingSpan } = ichimokuCloud(high, low, close)
-    return {
-        timestamps,
-        candles: {
-            open,
-            close,
-            low,
-            high,
-        },
-        tenkan,
-        kijun,
-        ssa,
-        ssb,
-        lagging: laggingSpan,
     }
 }

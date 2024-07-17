@@ -33,6 +33,7 @@ export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
             limit: 1,
         })
         return {
+            openTime: parseFloat(kline[0] as string),
             open: parseFloat(kline[1] as string),
             high: parseFloat(kline[2] as string),
             low: parseFloat(kline[3] as string),
