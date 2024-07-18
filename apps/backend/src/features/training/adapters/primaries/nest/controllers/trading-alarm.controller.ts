@@ -26,7 +26,7 @@ export class TradingAlarmController {
     @Get('/chart-data')
     async retrieveChartData(@Query('date') dateInMs: number) {
         const date = new UTCDate(fromUnixTime(dateInMs / 1000))
-        const chartData = await this._ichimokuChartDatasource.retrieveChartData({ date })
+        const chartData = await this._ichimokuChartDatasource.retrieveChartData({ graphicalDate: date })
         return {
             chartData,
         }

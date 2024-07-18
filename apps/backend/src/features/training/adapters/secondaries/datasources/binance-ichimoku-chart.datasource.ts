@@ -18,12 +18,16 @@ const periodsRequiredToHaveACompleteCloud = 52
 export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
     constructor(private readonly _client: Spot) {}
 
-    async retrieveChartData({ date }: { date: UTCDate }): Promise<Indicators> {
-        const [horizon, graphical, intervention] = await Promise.all([
-            this.ichimokuIndicators({ date, interval: intervals.horizon }),
-            this.ichimokuIndicators({ date, interval: intervals.graphical }),
-            this.ichimokuIndicators({ date, interval: intervals.intervention }),
+    async retrieveChartData({ graphicalDate }: { graphicalDate: UTCDate }): Promise<Indicators> {
+        const [graphical, intervention] = await Promise.all([
+            this.ichimokuIndicators({ graphicalDate: graphicalDate, interval: intervals.graphical }),
+            this.ichimokuIndicators({ graphicalDate: graphicalDate, interval: intervals.intervention }),
         ])
+        const horizon = await this.ichimokuIndicators({
+            graphicalDate: startOfDay(graphicalDate),
+            interval: intervals.horizon,
+            zoomedInData: graphical,
+        })
         return { horizon, graphical, intervention }
     }
 
@@ -42,20 +46,36 @@ export class BinanceIchimokuChartDatasource implements IchimokuChartDatasource {
     }
 
     private async ichimokuIndicators({
-        date,
+        graphicalDate,
         interval,
+        zoomedInData,
     }: {
-        date: UTCDate
+        graphicalDate: UTCDate
         interval: Interval
+        zoomedInData?: WorkingUnitData
     }): Promise<WorkingUnitData> {
-        const startDate = addPeriods[interval](date, -periodsRequiredToHaveACompleteCloud * 3)
-        let endDate = date
-        if (interval === Interval['15m']) endDate = addPeriods[interval](date, 3)
-        if (interval === Interval['1d']) endDate = addPeriods[interval](date, -1)
+        const startDate = addPeriods[interval](graphicalDate, -periodsRequiredToHaveACompleteCloud * 3)
+        let endDate = graphicalDate
+        if (interval === Interval['15m']) endDate = addPeriods[interval](graphicalDate, 3)
+        if (interval === Interval['1d']) endDate = addPeriods[interval](graphicalDate, -1)
         const binanceKlines = await this._client.klineCandlestickData(symbol, interval, {
             startTime: startDate.valueOf(),
             endTime: endDate.valueOf(),
         })
+        if (zoomedInData) {
+            const lastTimestamp = parseInt(binanceKlines[binanceKlines.length - 1][0] as string)
+            const i = zoomedInData.timestamps.findIndex((t) => startOfDay(new UTCDate(t)).valueOf() > lastTimestamp)
+            if (i > -1) {
+                const openTime = addDays(new UTCDate(lastTimestamp), 1).valueOf()
+                const lastClosedCandleIdx = zoomedInData.candles.close.length - 1
+                const open = zoomedInData.candles.open[i]
+                const high = Math.max(...zoomedInData.candles.high.slice(i))
+                const low = Math.min(...zoomedInData.candles.low.slice(i))
+                const close = zoomedInData.candles.close[lastClosedCandleIdx]
+                const lastKline = [openTime, `${open}`, `${high}`, `${low}`, `${close}`]
+                binanceKlines.push(lastKline)
+            }
+        }
 
         const { timestamps, openings, closings, highs, lows } = binanceKlines.reduce(
             (acc, current) => ({
