@@ -246,6 +246,7 @@ export const IchimokuChart = () => {
                 },
             })
         }
+        currentChart.timeScale().scrollToRealTime()
     }, [currentChart, data])
 
     return (
