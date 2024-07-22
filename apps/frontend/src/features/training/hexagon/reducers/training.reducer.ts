@@ -9,9 +9,9 @@ import { changeWorkingUnit } from '../use-cases/change-working-unit/change-worki
 
 import { loadNextInterventionCandle } from '../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 
-import { FIFTEEN_MINUTES_IN_MS, ONE_HOUR_IN_MS } from '../../constants.ts'
+import { FIFTEEN_MINUTES_IN_MS, ONE_DAY_IN_MS, ONE_HOUR_IN_MS } from '../../constants.ts'
 import { ichimokuCloud } from 'indicatorts'
-import { startOfHour } from 'date-fns'
+import { startOfDay, startOfHour } from 'date-fns'
 import { UTCDate } from '@date-fns/utc'
 
 type State = {
@@ -50,23 +50,14 @@ export const trainingSlice = createSlice({
             state.workingUnit = payload.workingUnit
         })
         builder.addCase(loadNextInterventionCandle.fulfilled, (state, { payload }) => {
-            const lastTimestamp =
-                state.indicators!.intervention.timestamps[state.indicators!.intervention.timestamps.length - 1]
-            state.indicators!.intervention.timestamps.push(lastTimestamp + FIFTEEN_MINUTES_IN_MS)
-            state.indicators!.intervention.candles.open.push(payload.candle.open)
-            state.indicators!.intervention.candles.high.push(payload.candle.high)
-            state.indicators!.intervention.candles.low.push(payload.candle.low)
-            state.indicators!.intervention.candles.close.push(payload.candle.close)
-            const { tenkan, kijun, ssa, ssb, laggingSpan } = ichimokuCloud(
-                state.indicators!.intervention.candles.high,
-                state.indicators!.intervention.candles.low,
-                state.indicators!.intervention.candles.close,
-            )
-            state.indicators!.intervention.tenkan = tenkan
-            state.indicators!.intervention.kijun = kijun
-            state.indicators!.intervention.ssa = ssa
-            state.indicators!.intervention.ssb = ssb
-            state.indicators!.intervention.lagging = laggingSpan
+            const intervention = state.indicators!.intervention!
+            const lastTimestamp = intervention.timestamps[intervention.timestamps.length - 1]
+            intervention.timestamps.push(lastTimestamp + FIFTEEN_MINUTES_IN_MS)
+            intervention.candles.open.push(payload.candle.open)
+            intervention.candles.high.push(payload.candle.high)
+            intervention.candles.low.push(payload.candle.low)
+            intervention.candles.close.push(payload.candle.close)
+            updateIchimokuIndicators(intervention)
         })
         builder.addMatcher(isAnyOf(loadNextInterventionCandle.fulfilled), (state, { payload: { candle } }) => {
             const graphical = state.indicators!.graphical!
@@ -86,6 +77,25 @@ export const trainingSlice = createSlice({
             if (candle.low < graphical.candles.low[lastCandleIdx]) graphical.candles.low[lastCandleIdx] = candle.low
             graphical.candles.close[lastCandleIdx] = candle.close
             updateIchimokuIndicators(graphical)
+        })
+        builder.addMatcher(isAnyOf(loadNextInterventionCandle.fulfilled), (state, { payload: { candle } }) => {
+            const horizon = state.indicators!.horizon!
+            const lastCandleIdx = horizon.candles.close.length - 1
+            const lastCandleTimestamp = new UTCDate(horizon.timestamps[lastCandleIdx])
+            const candleTimestampAsDay = startOfDay(new UTCDate(candle.openTime))
+            if (lastCandleTimestamp.valueOf() < candleTimestampAsDay.valueOf()) {
+                horizon.timestamps.push(horizon.timestamps[horizon.timestamps.length - 1] + ONE_DAY_IN_MS)
+                horizon.candles.open.push(candle.open)
+                horizon.candles.high.push(candle.high)
+                horizon.candles.low.push(candle.low)
+                horizon.candles.close.push(candle.close)
+                updateIchimokuIndicators(horizon)
+                return
+            }
+            if (candle.high > horizon.candles.high[lastCandleIdx]) horizon.candles.high[lastCandleIdx] = candle.high
+            if (candle.low < horizon.candles.low[lastCandleIdx]) horizon.candles.low[lastCandleIdx] = candle.low
+            horizon.candles.close[lastCandleIdx] = candle.close
+            updateIchimokuIndicators(horizon)
         })
     },
 })

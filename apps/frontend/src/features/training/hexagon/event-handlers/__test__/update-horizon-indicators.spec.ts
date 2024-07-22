@@ -1,20 +1,20 @@
 import { initReduxStore, ReduxStore } from '../../../../../common/store/reduxStore.ts'
+import { UTCDate } from '@date-fns/utc'
+import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../common/__test__/candles-fixtures.ts'
 import { retrieveAlarmIndicators } from '../../use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
+import { Indicators } from '../../models/indicators.model.ts'
 import { Candle } from '../../models/candle.model.ts'
 import { loadNextInterventionCandle } from '../../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
-import { UTCDate } from '@date-fns/utc'
-import { Indicators } from '../../models/indicators.model.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../../constants.ts'
-import { addHours, addMinutes } from 'date-fns'
+import { addDays, addMinutes } from 'date-fns'
 import { ichimokuCloud, IchimokuCloudResult } from 'indicatorts'
-import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../common/__test__/candles-fixtures.ts'
 
-describe('Graphical indicators update', () => {
+describe('Horizon indicators update', () => {
     let store: ReduxStore
     let lastTimestamp: UTCDate
     let initialIndicators: Indicators
     let lastInterventionCandleTimestamp: UTCDate
-    let lastGraphicalTimestamp: UTCDate
+    let lastHorizonTimestamp: UTCDate
 
     beforeEach(() => {
         store = initReduxStore({})
@@ -23,8 +23,8 @@ describe('Graphical indicators update', () => {
         lastInterventionCandleTimestamp = new UTCDate(
             initialIndicators.intervention.timestamps[initialIndicators.intervention.candles.close.length - 1],
         )
-        lastGraphicalTimestamp = new UTCDate(
-            initialIndicators.graphical.timestamps[initialIndicators.graphical.timestamps.length - 1],
+        lastHorizonTimestamp = new UTCDate(
+            initialIndicators.horizon.timestamps[initialIndicators.horizon.timestamps.length - 1],
         )
         store.dispatch({
             type: retrieveAlarmIndicators.fulfilled.type,
@@ -32,7 +32,7 @@ describe('Graphical indicators update', () => {
         })
     })
 
-    describe('A new intervention candle has been retrieved starting a new graphical candle', () => {
+    describe('A new intervention candle has been retrieved starting a new horizon candle', () => {
         it('should append a new candle matching the retrieved candle values', () => {
             givenAnInterventionCandle({
                 openTime: lastInterventionCandleTimestamp.valueOf() + FIFTEEN_MINUTES_IN_MS,
@@ -42,7 +42,7 @@ describe('Graphical indicators update', () => {
                 close: 5,
             })
 
-            assertThatLastGraphicalCandleIsEqualTo({
+            assertThatLastHorizonCandleIsEqualTo({
                 open: NEUTRAL_VALUE,
                 high: 30,
                 low: 1,
@@ -50,7 +50,7 @@ describe('Graphical indicators update', () => {
             })
         })
 
-        it('should calculate the next timestamp for the cloud', () => {
+        it('should calculate next timestamp for the cloud', () => {
             givenAnInterventionCandle({
                 openTime: lastInterventionCandleTimestamp.valueOf() + FIFTEEN_MINUTES_IN_MS,
                 open: NEUTRAL_VALUE,
@@ -59,7 +59,7 @@ describe('Graphical indicators update', () => {
                 close: 5,
             })
 
-            assertThatLastGraphicalTimestampIs(addHours(lastGraphicalTimestamp, 1))
+            assertThatLastHorizonTimestampIs(addDays(lastHorizonTimestamp, 1))
         })
 
         it('should recalculate ichimoku indicators', () => {
@@ -73,9 +73,9 @@ describe('Graphical indicators update', () => {
 
             assertIchimokuIndicatorsHaveBeenUpdated(
                 ichimokuCloud(
-                    [...initialIndicators.graphical.candles.high, 30],
-                    [...initialIndicators.graphical.candles.low, 1],
-                    [...initialIndicators.graphical.candles.close, 5],
+                    [...initialIndicators.horizon.candles.high, 30],
+                    [...initialIndicators.horizon.candles.low, 1],
+                    [...initialIndicators.horizon.candles.close, 5],
                 ),
             )
         })
@@ -96,7 +96,7 @@ describe('Graphical indicators update', () => {
         })
 
         describe('A new intervention candle has been retrieved', () => {
-            it('should update the last graphical candle high, low and close values', () => {
+            it('should update the last horizon candle high, low and close values', () => {
                 givenAnInterventionCandle(
                     nextCandle({
                         high: 60,
@@ -105,13 +105,13 @@ describe('Graphical indicators update', () => {
                     }),
                 )
 
-                assertThatLastGraphicalCandleIsEqualTo({
+                assertThatLastHorizonCandleIsEqualTo({
                     open: previousCandle.open,
                     high: 60,
                     low: 1,
                     close: 30,
                 })
-                assertThatLastGraphicalTimestampIs(addHours(lastGraphicalTimestamp, 1))
+                assertThatLastHorizonTimestampIs(addDays(lastHorizonTimestamp, 1))
                 assertIchimokuIndicatorsHaveBeenUpdated(
                     ichimokuCloud(
                         [...initialIndicators.graphical.candles.high, 60],
@@ -130,7 +130,7 @@ describe('Graphical indicators update', () => {
                     }),
                 )
 
-                assertThatLastGraphicalCandleIsEqualTo({
+                assertThatLastHorizonCandleIsEqualTo({
                     open: previousCandle.open,
                     high: 60,
                     low: previousCandle.low,
@@ -147,7 +147,7 @@ describe('Graphical indicators update', () => {
                     }),
                 )
 
-                assertThatLastGraphicalCandleIsEqualTo({
+                assertThatLastHorizonCandleIsEqualTo({
                     open: previousCandle.open,
                     high: previousCandle.high,
                     low: 1,
@@ -172,26 +172,26 @@ describe('Graphical indicators update', () => {
         })
     }
 
-    const assertThatLastGraphicalCandleIsEqualTo = (candle: {
+    const assertThatLastHorizonCandleIsEqualTo = (candle: {
         open: number
         close: number
         high: number
         low: number
     }) => {
-        const graphical = graphicalState()
-        expect(graphical.candles.open).toEqual([...initialIndicators.graphical.candles.open, candle.open])
-        expect(graphical.candles.close).toEqual([...initialIndicators.graphical.candles.close, candle.close])
-        expect(graphical.candles.high).toEqual([...initialIndicators.graphical.candles.high, candle.high])
-        expect(graphical.candles.low).toEqual([...initialIndicators.graphical.candles.low, candle.low])
+        const horizon = horizonState()
+        expect(horizon.candles.open).toEqual([...initialIndicators.horizon.candles.open, candle.open])
+        expect(horizon.candles.close).toEqual([...initialIndicators.horizon.candles.close, candle.close])
+        expect(horizon.candles.high).toEqual([...initialIndicators.horizon.candles.high, candle.high])
+        expect(horizon.candles.low).toEqual([...initialIndicators.horizon.candles.low, candle.low])
     }
 
-    const assertThatLastGraphicalTimestampIs = (date: UTCDate) => {
-        const graphical = store.getState().training.indicators!.graphical
-        expect(graphical.timestamps[graphical.timestamps.length - 1]).toEqual(date.valueOf())
+    const assertThatLastHorizonTimestampIs = (date: UTCDate) => {
+        const horizon = store.getState().training.indicators!.horizon
+        expect(horizon.timestamps[horizon.timestamps.length - 1]).toEqual(date.valueOf())
     }
 
     const assertIchimokuIndicatorsHaveBeenUpdated = (ichimokuResult: IchimokuCloudResult) => {
-        const { tenkan, kijun, ssa, ssb, lagging } = graphicalState()
+        const { tenkan, kijun, ssa, ssb, lagging } = horizonState()
         expect(tenkan).toEqual(ichimokuResult.tenkan)
         expect(kijun).toEqual(ichimokuResult.kijun)
         expect(ssa).toEqual(ichimokuResult.ssa)
@@ -199,5 +199,5 @@ describe('Graphical indicators update', () => {
         expect(lagging).toEqual(ichimokuResult.laggingSpan)
     }
 
-    const graphicalState = () => store.getState().training.indicators!.graphical
+    const horizonState = () => store.getState().training.indicators!.horizon
 })
