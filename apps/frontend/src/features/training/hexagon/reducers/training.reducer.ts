@@ -7,7 +7,7 @@ import { changeWorkingUnit } from '../use-cases/change-working-unit/change-worki
 
 import { loadNextInterventionCandle } from '../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 
-import { FIFTEEN_MINUTES_IN_MS, ONE_DAY_IN_MS, ONE_HOUR_IN_MS } from '../../constants.ts'
+import { ONE_DAY_IN_MS, ONE_HOUR_IN_MS } from '../../constants.ts'
 import { ichimokuCloud } from 'indicatorts'
 import { startOfDay, startOfHour } from 'date-fns'
 import { UTCDate } from '@date-fns/utc'
@@ -40,16 +40,6 @@ export const trainingSlice = createSlice({
         })
         builder.addCase(changeWorkingUnit.fulfilled, (state, { payload }) => {
             state.workingUnit = payload.workingUnit
-        })
-        builder.addCase(loadNextInterventionCandle.fulfilled, (state, { payload }) => {
-            const intervention = state.indicators!.intervention!
-            const lastTimestamp = intervention.timestamps[intervention.timestamps.length - 1]
-            intervention.timestamps.push(lastTimestamp + FIFTEEN_MINUTES_IN_MS)
-            intervention.candles.open.push(payload.candle.open)
-            intervention.candles.high.push(payload.candle.high)
-            intervention.candles.low.push(payload.candle.low)
-            intervention.candles.close.push(payload.candle.close)
-            updateIchimokuIndicators(intervention)
         })
         builder.addMatcher(isAnyOf(loadNextInterventionCandle.fulfilled), (state, { payload: { candle } }) => {
             const graphical = state.indicators!.graphical!
@@ -92,7 +82,7 @@ export const trainingSlice = createSlice({
     },
 })
 
-const updateIchimokuIndicators = (workingUnitData: WorkingUnitData) => {
+export const updateIchimokuIndicators = (workingUnitData: WorkingUnitData) => {
     const result = ichimokuCloud(
         workingUnitData.candles.high,
         workingUnitData.candles.low,

@@ -6,6 +6,7 @@ import { launchTraining } from '../../launch-training/launch-training.ts'
 import { TradingAlarm } from '../../../models/trading-alarm.ts'
 import { UTCDate } from '@date-fns/utc'
 import { addDays, isEqual } from 'date-fns'
+import { emptyIndicators } from '../../../reducers/intervention-indicators.reducer.ts'
 
 describe('Retrieve indicators', () => {
     let store: ReduxStore
@@ -18,6 +19,7 @@ describe('Retrieve indicators', () => {
 
     it('has no indicators initially', () => {
         expect(store.getState().training.indicators).toEqual(null)
+        expect(store.getState().interventionIndicators).toEqual(emptyIndicators())
     })
 
     it('retrieves indicators of current alarm', async () => {
@@ -35,6 +37,7 @@ describe('Retrieve indicators', () => {
         await store.dispatch(retrieveAlarmIndicators())
 
         expect(store.getState().training.indicators).toEqual(ALARM_INDICATORS)
+        expect(store.getState().interventionIndicators).toEqual(ALARM_INDICATORS.intervention)
     })
 
     it('does not retrieve indicators when there is no alarm', async () => {
@@ -44,6 +47,7 @@ describe('Retrieve indicators', () => {
 
         expect(store.getState().training.indicators).toEqual(null)
         expect(store.getState().training.workingUnit).toEqual(null)
+        expect(store.getState().interventionIndicators).toEqual(emptyIndicators())
     })
 })
 

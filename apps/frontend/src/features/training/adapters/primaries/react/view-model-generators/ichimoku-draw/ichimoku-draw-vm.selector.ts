@@ -9,10 +9,13 @@ const longerWorkingUnitWorkingUnitVM = (state: AppState) => {
 }
 const indicatorsVM = (state: AppState) => state.training.indicators
 
+const interventionIndicatorsVM = (state: AppState) => state.interventionIndicators
+
 const workingUnitDataVM = createSelector(
-    [workingUnitVM, indicatorsVM],
-    (workingUnit, indicators): WorkingUnitData | null => {
+    [workingUnitVM, indicatorsVM, interventionIndicatorsVM],
+    (workingUnit, indicators, interventionIndicators): WorkingUnitData | null => {
         if (!workingUnit || !indicators) return null
+        if (workingUnit === 'intervention') return interventionIndicators
         return indicators[workingUnit]
     },
 )
@@ -37,26 +40,6 @@ export const ichimokuDrawVM = createSelector(
         }
     },
 )
-
-// export const ichimokuDrawVM = (state: AppState): IchimokuDrawVM => {
-//     if (!state.training.indicators || !state.training.workingUnit) return null
-//     const workingUnit = state.training.workingUnit
-//     const workingUnitData = state.training.indicators[workingUnit]
-//     const longerWorkingUnit = longerWorkingUnits[workingUnit]
-//     if (!longerWorkingUnit)
-//         return {
-//             ...workingUnitData,
-//             previousKijun: [],
-//             previousSsa: [],
-//             previousSsb: [],
-//             previousLagging: [],
-//         }
-//     const zoomedWorkingUnitData = state.training.indicators[longerWorkingUnit]
-//     return {
-//         ...workingUnitData,
-//         ...zoomIn(zoomedWorkingUnitData, workingUnitData.timestamps),
-//     }
-// }
 
 const longerWorkingUnits: Partial<Record<WorkingUnit, WorkingUnit>> = {
     graphical: 'horizon',
