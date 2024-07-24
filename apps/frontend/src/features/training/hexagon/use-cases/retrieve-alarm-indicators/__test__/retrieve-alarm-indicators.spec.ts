@@ -1,6 +1,6 @@
 import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
 import { retrieveAlarmIndicators } from '../retrieve-alarm-indicators.ts'
-import { Indicators } from '../../../models/indicators.model.ts'
+import { AllIndicators } from '../../../models/indicators.model.ts'
 import { IndicatorGateway } from '../../../ports/gateways/indicator.gateway.ts'
 import { launchTraining } from '../../launch-training/launch-training.ts'
 import { TradingAlarm } from '../../../models/trading-alarm.ts'
@@ -18,8 +18,9 @@ describe('Retrieve indicators', () => {
     })
 
     it('has no indicators initially', () => {
-        expect(store.getState().training.indicators).toEqual(null)
         expect(store.getState().interventionIndicators).toEqual(emptyIndicators())
+        expect(store.getState().graphicalIndicators).toEqual(emptyIndicators())
+        expect(store.getState().horizonIndicators).toEqual(emptyIndicators())
     })
 
     it('retrieves indicators of current alarm', async () => {
@@ -36,8 +37,9 @@ describe('Retrieve indicators', () => {
 
         await store.dispatch(retrieveAlarmIndicators())
 
-        expect(store.getState().training.indicators).toEqual(ALARM_INDICATORS)
         expect(store.getState().interventionIndicators).toEqual(ALARM_INDICATORS.intervention)
+        expect(store.getState().graphicalIndicators).toEqual(ALARM_INDICATORS.graphical)
+        expect(store.getState().horizonIndicators).toEqual(ALARM_INDICATORS.horizon)
     })
 
     it('does not retrieve indicators when there is no alarm', async () => {
@@ -45,8 +47,9 @@ describe('Retrieve indicators', () => {
 
         await store.dispatch(retrieveAlarmIndicators())
 
-        expect(store.getState().training.indicators).toEqual(null)
         expect(store.getState().training.workingUnit).toEqual(null)
+        expect(store.getState().interventionIndicators).toEqual(emptyIndicators())
+        expect(store.getState().graphicalIndicators).toEqual(emptyIndicators())
         expect(store.getState().interventionIndicators).toEqual(emptyIndicators())
     })
 })
@@ -54,20 +57,20 @@ describe('Retrieve indicators', () => {
 class StubIndicatorGateway implements IndicatorGateway {
     private readonly _indicators: Array<{
         date: UTCDate
-        indicators: Indicators
+        indicators: AllIndicators
     }> = []
 
-    async retrieveIndicators(date: UTCDate): Promise<Indicators> {
+    async retrieveIndicators(date: UTCDate): Promise<AllIndicators> {
         return this._indicators.find(({ date: d }) => isEqual(d, date))!.indicators
     }
 
-    feedWith(date: UTCDate, indicators: Indicators) {
+    feedWith(date: UTCDate, indicators: AllIndicators) {
         this._indicators.push({ date, indicators })
         return this
     }
 }
 
-export const ALARM_INDICATORS: Indicators = {
+export const ALARM_INDICATORS: AllIndicators = {
     horizon: {
         timestamps: [1],
         candles: {
@@ -112,7 +115,7 @@ export const ALARM_INDICATORS: Indicators = {
     },
 }
 
-const ANOTHER_ALARM_INDICATORS: Indicators = {
+const ANOTHER_ALARM_INDICATORS: AllIndicators = {
     horizon: {
         timestamps: [19],
         candles: {

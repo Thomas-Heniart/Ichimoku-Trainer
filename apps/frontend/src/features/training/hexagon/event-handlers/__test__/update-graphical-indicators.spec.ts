@@ -3,7 +3,7 @@ import { retrieveAlarmIndicators } from '../../use-cases/retrieve-alarm-indicato
 import { Candle } from '../../models/candle.model.ts'
 import { loadNextInterventionCandle } from '../../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 import { UTCDate } from '@date-fns/utc'
-import { Indicators } from '../../models/indicators.model.ts'
+import { AllIndicators } from '../../models/indicators.model.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../../constants.ts'
 import { addHours, addMinutes } from 'date-fns'
 import { ichimokuCloud, IchimokuCloudResult } from 'indicatorts'
@@ -12,7 +12,7 @@ import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../co
 describe('Graphical indicators update', () => {
     let store: ReduxStore
     let lastTimestamp: UTCDate
-    let initialIndicators: Indicators
+    let initialIndicators: AllIndicators
     let lastInterventionCandleTimestamp: UTCDate
     let lastGraphicalTimestamp: UTCDate
 
@@ -178,7 +178,7 @@ describe('Graphical indicators update', () => {
         high: number
         low: number
     }) => {
-        const graphical = graphicalState()
+        const graphical = graphicalIndicators()
         expect(graphical.candles.open).toEqual([...initialIndicators.graphical.candles.open, candle.open])
         expect(graphical.candles.close).toEqual([...initialIndicators.graphical.candles.close, candle.close])
         expect(graphical.candles.high).toEqual([...initialIndicators.graphical.candles.high, candle.high])
@@ -186,12 +186,12 @@ describe('Graphical indicators update', () => {
     }
 
     const assertThatLastGraphicalTimestampIs = (date: UTCDate) => {
-        const graphical = store.getState().training.indicators!.graphical
+        const graphical = graphicalIndicators()
         expect(graphical.timestamps[graphical.timestamps.length - 1]).toEqual(date.valueOf())
     }
 
     const assertIchimokuIndicatorsHaveBeenUpdated = (ichimokuResult: IchimokuCloudResult) => {
-        const { tenkan, kijun, ssa, ssb, lagging } = graphicalState()
+        const { tenkan, kijun, ssa, ssb, lagging } = graphicalIndicators()
         expect(tenkan).toEqual(ichimokuResult.tenkan)
         expect(kijun).toEqual(ichimokuResult.kijun)
         expect(ssa).toEqual(ichimokuResult.ssa)
@@ -199,5 +199,5 @@ describe('Graphical indicators update', () => {
         expect(lagging).toEqual(ichimokuResult.laggingSpan)
     }
 
-    const graphicalState = () => store.getState().training.indicators!.graphical
+    const graphicalIndicators = () => store.getState().graphicalIndicators
 })

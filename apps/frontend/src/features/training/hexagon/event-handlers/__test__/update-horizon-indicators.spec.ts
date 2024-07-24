@@ -2,7 +2,7 @@ import { initReduxStore, ReduxStore } from '../../../../../common/store/reduxSto
 import { UTCDate } from '@date-fns/utc'
 import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../common/__test__/candles-fixtures.ts'
 import { retrieveAlarmIndicators } from '../../use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
-import { Indicators } from '../../models/indicators.model.ts'
+import { AllIndicators } from '../../models/indicators.model.ts'
 import { Candle } from '../../models/candle.model.ts'
 import { loadNextInterventionCandle } from '../../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../../constants.ts'
@@ -12,7 +12,7 @@ import { ichimokuCloud, IchimokuCloudResult } from 'indicatorts'
 describe('Horizon indicators update', () => {
     let store: ReduxStore
     let lastTimestamp: UTCDate
-    let initialIndicators: Indicators
+    let initialIndicators: AllIndicators
     let lastInterventionCandleTimestamp: UTCDate
     let lastHorizonTimestamp: UTCDate
 
@@ -178,7 +178,7 @@ describe('Horizon indicators update', () => {
         high: number
         low: number
     }) => {
-        const horizon = horizonState()
+        const horizon = horizonIndicators()
         expect(horizon.candles.open).toEqual([...initialIndicators.horizon.candles.open, candle.open])
         expect(horizon.candles.close).toEqual([...initialIndicators.horizon.candles.close, candle.close])
         expect(horizon.candles.high).toEqual([...initialIndicators.horizon.candles.high, candle.high])
@@ -186,12 +186,12 @@ describe('Horizon indicators update', () => {
     }
 
     const assertThatLastHorizonTimestampIs = (date: UTCDate) => {
-        const horizon = store.getState().training.indicators!.horizon
+        const horizon = horizonIndicators()
         expect(horizon.timestamps[horizon.timestamps.length - 1]).toEqual(date.valueOf())
     }
 
     const assertIchimokuIndicatorsHaveBeenUpdated = (ichimokuResult: IchimokuCloudResult) => {
-        const { tenkan, kijun, ssa, ssb, lagging } = horizonState()
+        const { tenkan, kijun, ssa, ssb, lagging } = horizonIndicators()
         expect(tenkan).toEqual(ichimokuResult.tenkan)
         expect(kijun).toEqual(ichimokuResult.kijun)
         expect(ssa).toEqual(ichimokuResult.ssa)
@@ -199,5 +199,5 @@ describe('Horizon indicators update', () => {
         expect(lagging).toEqual(ichimokuResult.laggingSpan)
     }
 
-    const horizonState = () => store.getState().training.indicators!.horizon
+    const horizonIndicators = () => store.getState().horizonIndicators
 })

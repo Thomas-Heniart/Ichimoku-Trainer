@@ -1,5 +1,5 @@
 import { initReduxStore, ReduxStore } from '../../../../../../common/store/reduxStore.ts'
-import { Indicators } from '../../../models/indicators.model.ts'
+import { AllIndicators } from '../../../models/indicators.model.ts'
 import { retrieveAlarmIndicators } from '../../retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { loadNextInterventionCandle } from '../load-next-intervention-candle.ts'
 import { ichimokuCloud } from 'indicatorts'
@@ -12,7 +12,7 @@ import { NEUTRAL_VALUE, neutralIndicatorsFinishingADay } from '../../../../../..
 
 describe('Load next intervention candle', () => {
     let sut: SUT
-    let initialIndicators: Indicators
+    let initialIndicators: AllIndicators
     let lastTimestamp: UTCDate
     let lastClosedTimestamp: UTCDate
 
@@ -127,7 +127,7 @@ class SUT {
         })
     }
 
-    givenIndicators(indicators: Indicators) {
+    givenIndicators(indicators: AllIndicators) {
         this._store.dispatch({
             type: retrieveAlarmIndicators.fulfilled.type,
             payload: { indicators },

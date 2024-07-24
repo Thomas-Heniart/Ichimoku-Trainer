@@ -10,6 +10,8 @@ import { CandleGateway } from '../../features/training/hexagon/ports/gateways/ca
 import { CalculateIchimokuIndicators } from '../../features/training/hexagon/models/services/calculate-ichimoku-indicators.service.ts'
 import { tradingAlarmReducer } from '../../features/training/hexagon/reducers/trading-alarm.reducer.ts'
 import { interventionIndicatorsReducer } from '../../features/training/hexagon/reducers/intervention-indicators.reducer.ts'
+import { graphicalIndicatorsReducer } from '../../features/training/hexagon/reducers/graphical-indicators.reducer.ts'
+import { horizonIndicatorsReducer } from '../../features/training/hexagon/reducers/horizon-indicators.reducer.ts'
 
 export interface Dependencies {
     indicatorGateway: IndicatorGateway
@@ -23,6 +25,8 @@ const rootReducer = combineReducers({
     training: trainingSlice.reducer,
     tradingAlarm: tradingAlarmReducer,
     interventionIndicators: interventionIndicatorsReducer,
+    graphicalIndicators: graphicalIndicatorsReducer,
+    horizonIndicators: horizonIndicatorsReducer,
 })
 export const initReduxStore = (dependencies: Partial<Dependencies>) => {
     return configureStore({

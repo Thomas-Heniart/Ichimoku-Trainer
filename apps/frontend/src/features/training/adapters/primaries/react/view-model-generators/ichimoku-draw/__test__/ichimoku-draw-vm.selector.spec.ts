@@ -1,6 +1,6 @@
 import { initReduxStore, ReduxStore } from '../../../../../../../../common/store/reduxStore.ts'
 import { ALARM_INDICATORS } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/__test__/retrieve-alarm-indicators.spec.ts'
-import { Indicators, WorkingUnit, WorkingUnitData } from '../../../../../../hexagon/models/indicators.model.ts'
+import { AllIndicators, Indicators, WorkingUnit } from '../../../../../../hexagon/models/indicators.model.ts'
 import { ichimokuDrawVM } from '../ichimoku-draw-vm.selector.ts'
 import { retrieveAlarmIndicators } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { changeWorkingUnit } from '../../../../../../hexagon/use-cases/change-working-unit/change-working-unit.ts'
@@ -120,7 +120,7 @@ describe('Ichimoku draw view model generators', () => {
         })
     })
 
-    const onIndicatorsRetrieved = (indicators: Indicators) => {
+    const onIndicatorsRetrieved = (indicators: AllIndicators) => {
         store.dispatch({
             type: retrieveAlarmIndicators.fulfilled.type,
             payload: {
@@ -138,8 +138,8 @@ describe('Ichimoku draw view model generators', () => {
         })
     }
 
-    const arbitraryIndicatorsBasedOnTimestampsIndex = (timestamps: Array<number>): WorkingUnitData => {
-        return timestamps.reduce<WorkingUnitData>(
+    const arbitraryIndicatorsBasedOnTimestampsIndex = (timestamps: Array<number>): Indicators => {
+        return timestamps.reduce<Indicators>(
             (acc, current, i) => {
                 return {
                     timestamps: [...acc.timestamps, current],

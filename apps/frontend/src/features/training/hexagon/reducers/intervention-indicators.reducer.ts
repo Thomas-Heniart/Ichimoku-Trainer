@@ -3,24 +3,9 @@ import { launchTraining } from '../use-cases/launch-training/launch-training.ts'
 import { retrieveAlarmIndicators } from '../use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { loadNextInterventionCandle } from '../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
 import { FIFTEEN_MINUTES_IN_MS } from '../../constants.ts'
-import { updateIchimokuIndicators } from './training.reducer.ts'
+import { Indicators, updateIchimokuIndicators } from '../models/indicators.model.ts'
 
-export type IndicatorsState = {
-    timestamps: Array<number>
-    candles: {
-        open: Array<number>
-        high: Array<number>
-        low: Array<number>
-        close: Array<number>
-    }
-    tenkan: Array<number>
-    kijun: Array<number>
-    ssa: Array<number>
-    ssb: Array<number>
-    lagging: Array<number>
-}
-
-export const emptyIndicators = (): IndicatorsState => ({
+export const emptyIndicators = (): Indicators => ({
     timestamps: [],
     candles: {
         open: [],

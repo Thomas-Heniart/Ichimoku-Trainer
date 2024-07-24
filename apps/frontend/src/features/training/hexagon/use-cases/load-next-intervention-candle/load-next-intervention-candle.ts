@@ -5,7 +5,7 @@ import { Candle } from '../../models/candle.model.ts'
 export const loadNextInterventionCandle = createAsyncThunk<{ candle: Candle }, void, AppAsyncThunkConfig>(
     'intervention/next-candle',
     async (_, { getState, extra: { candleGateway } }) => {
-        const interventionData = (getState() as AppState).training.indicators!.intervention
+        const interventionData = (getState() as AppState).interventionIndicators
         const lastClosedCandleTimestamp = interventionData.timestamps[interventionData.candles.close.length - 1]
         const candle = await candleGateway.candleAfter(lastClosedCandleTimestamp)
         return { candle }
