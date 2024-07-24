@@ -1,6 +1,4 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit'
-
-import { TradingAlarm } from '../models/trading-alarm.ts'
 import { Indicators, WorkingUnit, WorkingUnitData } from '../models/indicators.model.ts'
 import { retrieveAlarmIndicators } from '../use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { launchTraining } from '../use-cases/launch-training/launch-training.ts'
@@ -15,13 +13,11 @@ import { startOfDay, startOfHour } from 'date-fns'
 import { UTCDate } from '@date-fns/utc'
 
 type State = {
-    alarm: TradingAlarm | null
     indicators: Indicators | null
     workingUnit: WorkingUnit | null
     isLoading: boolean
 }
 const initialState = (): State => ({
-    alarm: null,
     indicators: null,
     workingUnit: null,
     isLoading: false,
@@ -34,12 +30,8 @@ export const trainingSlice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(launchTraining.pending, (state) => {
             state.workingUnit = null
-            state.alarm = null
             state.indicators = null
             state.isLoading = true
-        })
-        builder.addCase(launchTraining.fulfilled, (state, { payload }) => {
-            state.alarm = payload.alarm
         })
         builder.addCase(retrieveAlarmIndicators.fulfilled, (state, { payload }) => {
             state.indicators = payload.indicators

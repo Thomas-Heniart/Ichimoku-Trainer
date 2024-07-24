@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux'
 import { AppState } from '../../../../../../common/store/reduxStore.ts'
 
 export const CurrentAlarm = () => {
-    const alarm = useSelector((state: AppState) => state.training.alarm)
+    const alarm = useSelector((state: AppState) => state.tradingAlarm.currentAlarm)
 
     if (!alarm) return <></>
     return (

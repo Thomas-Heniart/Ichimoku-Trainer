@@ -15,7 +15,7 @@ describe('Launch training', () => {
     })
 
     it('has no alarm initially', () => {
-        expect(sut.getState().training.alarm).toEqual(null)
+        expect(sut.getState().tradingAlarm.currentAlarm).toEqual(null)
     })
 
     it('sicks for a trading alarm from a random date', async () => {
@@ -89,7 +89,7 @@ class SUT {
     }
 
     get tradingAlarm() {
-        return this._store.getState().training.alarm
+        return this._store.getState().tradingAlarm.currentAlarm
     }
 
     getState() {

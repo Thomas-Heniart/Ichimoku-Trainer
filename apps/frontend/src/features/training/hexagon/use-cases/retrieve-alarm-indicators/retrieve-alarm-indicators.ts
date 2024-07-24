@@ -7,8 +7,9 @@ export const retrieveAlarmIndicators = createAsyncThunk<{ indicators: Indicators
     'training/retrieve-alarm-indicators',
     async (_, { getState, extra: { indicatorGateway } }) => {
         const state = getState() as AppState
-        if (!state.training.alarm) return { indicators: null }
-        const indicators = await indicatorGateway.retrieveIndicators(new UTCDate(state.training.alarm.date))
+        const currentAlarm = state.tradingAlarm.currentAlarm
+        if (!currentAlarm) return { indicators: null }
+        const indicators = await indicatorGateway.retrieveIndicators(new UTCDate(currentAlarm.date))
         return {
             indicators,
         }
