@@ -12,6 +12,7 @@ import { tradingAlarmReducer } from '../../features/training/hexagon/reducers/tr
 import { interventionIndicatorsReducer } from '../../features/training/hexagon/reducers/intervention-indicators.reducer.ts'
 import { graphicalIndicatorsReducer } from '../../features/training/hexagon/reducers/graphical-indicators.reducer.ts'
 import { horizonIndicatorsReducer } from '../../features/training/hexagon/reducers/horizon-indicators.reducer.ts'
+import { openPositionReducer } from '../../features/training/hexagon/reducers/open-position.reducer.ts'
 
 export interface Dependencies {
     indicatorGateway: IndicatorGateway
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
     interventionIndicators: interventionIndicatorsReducer,
     graphicalIndicators: graphicalIndicatorsReducer,
     horizonIndicators: horizonIndicatorsReducer,
+    openPosition: openPositionReducer,
 })
 export const initReduxStore = (dependencies: Partial<Dependencies>) => {
     return configureStore({
