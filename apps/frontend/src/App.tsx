@@ -6,6 +6,7 @@ import { IchimokuChart } from './features/training/adapters/primaries/react/comp
 import { LoadNextInterventionCandleButton } from './features/training/adapters/primaries/react/components/load-next-intervention-candle-button.tsx'
 import { useSelector } from 'react-redux'
 import { showChartVM } from './features/training/adapters/primaries/react/view-model-generators/show-chart.vm.ts'
+import { CurrentPosition } from './features/training/adapters/primaries/react/components/current-position.tsx'
 
 export default function App() {
     const showChart = useSelector(showChartVM)
@@ -20,6 +21,7 @@ export default function App() {
                         <CurrentAlarm />
                         <SelectWorkingUnit />
                         <LoadNextInterventionCandleButton />
+                        <CurrentPosition />
                     </div>
                 </div>
             )}
