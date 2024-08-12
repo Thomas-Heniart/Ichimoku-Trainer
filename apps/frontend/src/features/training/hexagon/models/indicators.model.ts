@@ -1,4 +1,6 @@
 import { ichimokuCloud } from 'indicatorts'
+import { addMinutes, endOfMinute } from 'date-fns'
+import { UTCDate } from '@date-fns/utc'
 
 export type Indicators = {
     timestamps: Array<number>
@@ -31,3 +33,14 @@ export const updateIchimokuIndicators = (indicators: Indicators) => {
     indicators.ssb = ssb
     indicators.lagging = laggingSpan
 }
+
+export const lastCandleTimestamp = (indicators: Indicators) =>
+    indicators.timestamps[indicators.candles.close.length - 1]
+
+export const lastClosingPrice = (indicators: Indicators) =>
+    indicators.candles.close[indicators.candles.close.length - 1]
+
+export const endOfInterventionCandleTimestamp = (indicators: Indicators) =>
+    endOfInterventionTimestamp(new UTCDate(lastCandleTimestamp(indicators)))
+
+export const endOfInterventionTimestamp = (timestamp: UTCDate) => endOfMinute(addMinutes(timestamp, 14)).valueOf()

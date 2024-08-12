@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 import { openAPosition } from '../use-cases/open-a-position/open-a-position.ts'
 import { loadNextInterventionCandle } from '../use-cases/load-next-intervention-candle/load-next-intervention-candle.ts'
+import { closeCurrentPosition } from '../use-cases/close-current-position/close-current-position.ts'
 
 export type TradingSide = 'LONG' | 'SHORT'
 
@@ -12,9 +13,11 @@ type State = {
     pnl: null | number
 }
 
+const initialState = (): State => ({ openedAt: null, openingPrice: null, side: null, pnl: null })
+
 const openPositionSlice = createSlice({
     name: 'open/position',
-    initialState: (): State => ({ openedAt: null, openingPrice: null, side: null, pnl: null }),
+    initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder.addCase(openAPosition.fulfilled, (_, { payload }) => {
@@ -29,6 +32,7 @@ const openPositionSlice = createSlice({
                 pnl: (diff / state.openingPrice!) * sign,
             }
         })
+        builder.addCase(closeCurrentPosition.fulfilled, initialState)
     },
 })
 
