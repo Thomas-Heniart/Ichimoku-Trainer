@@ -1,0 +1,12 @@
+.pnl {
+    font-weight: bold;
+    padding: 7px;
+}
+
+.pnl.POSITIVE_PNL {
+    color: rgb(70,217,54);
+}
+
+.pnl.NEGATIVE_PNL {
+    color: rgb(225, 50, 85);
+}

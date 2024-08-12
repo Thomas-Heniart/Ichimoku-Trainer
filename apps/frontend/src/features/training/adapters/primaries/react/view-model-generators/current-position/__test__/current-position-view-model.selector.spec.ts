@@ -4,7 +4,7 @@ import { arbitraryAlarm } from '../../../../../../hexagon/use-cases/change-worki
 import { retrieveAlarmIndicators } from '../../../../../../hexagon/use-cases/retrieve-alarm-indicators/retrieve-alarm-indicators.ts'
 import { neutralIndicatorsFinishingADay } from '../../../../../../../../common/__test__/candles-fixtures.ts'
 import { openAPosition } from '../../../../../../hexagon/use-cases/open-a-position/open-a-position.ts'
-import { getCurrentPositionVM } from '../get-current-position.vm.ts'
+import { CurrentPositionVM, getCurrentPositionVM } from '../get-current-position.vm.ts'
 import { Candle } from '../../../../../../hexagon/models/candle.model.ts'
 import { addMinutes } from 'date-fns'
 import { UTCDate } from '@date-fns/utc'
@@ -40,23 +40,27 @@ describe('Current position view models generators', () => {
 
             it('should display PnL of current position', () => {
                 expect(getCurrentPositionVM(store.getState())).toEqual<CurrentPositionVM>({
-                    status: 'DISPLAY_PNL',
-                    pnl: '0',
+                    status: 'NEUTRAL_PNL',
+                    pnl: '0.00',
                 })
             })
 
             it.each`
-                close | pnl
-                ${20} | ${'100'}
-                ${5}  | ${'-50'}
-            `('displays PnL in %', ({ close, pnl }: { close: number; pnl: string }) => {
-                nextInterventionCandleRetrieved(close)
+                close | pnl         | pnlStatus
+                ${20} | ${'100.00'} | ${'POSITIVE_PNL'}
+                ${5}  | ${'-50.00'} | ${'NEGATIVE_PNL'}
+                ${10} | ${'0.00'}   | ${'NEUTRAL_PNL'}
+            `(
+                'displays PnL in %',
+                ({ close, pnl, pnlStatus }: { close: number; pnl: string; pnlStatus: CurrentPositionVM['status'] }) => {
+                    nextInterventionCandleRetrieved(close)
 
-                expect(getCurrentPositionVM(store.getState())).toEqual<CurrentPositionVM>({
-                    status: 'DISPLAY_PNL',
-                    pnl,
-                })
-            })
+                    expect(getCurrentPositionVM(store.getState())).toEqual<CurrentPositionVM>({
+                        status: pnlStatus,
+                        pnl,
+                    })
+                },
+            )
         })
 
         const trainingLaunched = () => {
@@ -90,8 +94,3 @@ describe('Current position view models generators', () => {
         }
     })
 })
-
-export type CurrentPositionVM = {
-    status: 'OPENABLE' | 'DISPLAY_PNL'
-    pnl: string | null
-}

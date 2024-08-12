@@ -4,13 +4,16 @@ import { TradingSide } from '../../../../hexagon/reducers/open-position.reducer.
 import { MouseEventHandler } from 'react'
 import { openAPosition } from '../../../../hexagon/use-cases/open-a-position/open-a-position.ts'
 import { getCurrentPositionVM } from '../view-model-generators/current-position/get-current-position.vm.ts'
+import classNames from 'classnames'
+import './css/current-position.css'
 
 export const CurrentPosition = () => {
     const currentPositionVM = useSelector(getCurrentPositionVM)
+    const pnlClass = classNames('pnl', currentPositionVM?.status ?? '')
 
     if (!currentPositionVM) return <></>
     if (currentPositionVM.status === 'OPENABLE') return <OpenPositionButtons />
-    return <div>Current position PnL: {currentPositionVM.pnl}%</div>
+    return <div className={pnlClass}>Current position PnL: {currentPositionVM.pnl}%</div>
 }
 
 const OpenPositionButtons = () => {
